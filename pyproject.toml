@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "pssetools"
+version = "0.0.1"
+description = ""
+authors = ["jbarberia <jbarberia@frba.utn.edu.ar>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^2.7 || >=3.7.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+pssetools = "pssetools.cli:app" 
+
