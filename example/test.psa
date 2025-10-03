@@ -1,0 +1,2 @@
+RUN without-fault TO 10 SECONDS
+END
