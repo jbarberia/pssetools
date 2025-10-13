@@ -1,3 +1,4 @@
+import os
 from . import psspy
 from . import argument_parser
 

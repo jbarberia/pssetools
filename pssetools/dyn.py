@@ -59,7 +59,10 @@ def run(outx, chan, snp, dll, no_debug=False, keep_post_fault_case=False, **kwar
         os.remove("simulacion.idv")
     
     if os.path.isfile(aut + ".py"):
-        execfile(aut + ".py")
+        file = aut + ".py"
+        with open(file) as f:
+            code = f.read()
+            exec(code)
     
     # guarda el caso post falla
     if keep_post_fault_case:
