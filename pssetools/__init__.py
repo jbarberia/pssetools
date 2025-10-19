@@ -20,6 +20,15 @@ def argument_parser(args_specs):
     parser.add_argument("files", nargs="*")
     args = parser.parse_args().__dict__
     
+    # en caso de no pasar argumentos mostrar una ayuda
+    need_help = True
+    for k, v in args.items():
+        if not(v is None or len(v) == 0):
+            need_help = False
+    if need_help:
+        parser.print_help()
+        sys.exit(0)
+
     # en caso de disponerlos sin especificar los asigna automaticamente
     for f in args["files"]:
         for arg in args_specs:
