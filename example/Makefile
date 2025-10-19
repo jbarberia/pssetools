@@ -6,18 +6,18 @@ sub = test.sub
 mon = test.mon
 con = test.con
 
-psa = $(wildcard *.psa)
+dyn = flat.py
 src = lib/mod3424_1.lib
 dll = $(wildcard lib/*.dll)
 dyr = gyr_24_v34_1.dyr
 channels   = channels.idv
 cnv_script = convload_sadi.py
 
-config = foo
+# config = foo
 
 RESULTS = results
 BUILD = build
-OUTX = $(foreach s, $(sav), $(addprefix $(basename ${s})-,$(psa:.psa=.outx)))
+OUTX = $(foreach s, $(sav), $(addprefix $(basename ${s})-,$(dyn:.py=.outx)))
 
 # shortcuts
 # ------------------------------------------------------------------------------

@@ -11,4 +11,4 @@ Los datos minimos son:
 - con (para resolver casos estaticos)
 
 - idv (para setear los canales)
-- psa (para controlar la simulacion dinamica)
+- py  (para controlar la simulacion dinamica)

@@ -44,11 +44,6 @@ def run(sav, snp, dyr, cc, ct, **kwargs):
                 
     # guardo el snapshot pero antes ajusto opciones
     # todo estas opciones deberian estar en otro lado
-    psspy.set_netfrq(1)
-    psspy.set_osscan(1,0)
-    psspy.set_genang_3(1, 180.0,0.0,0)    
-    if psspy.busexs(2620) == 0:    
-        psspy.set_relang(1,2620,'1')
     psspy.dynamics_solution_param_2([_i,_i,_i,_i,_i,_i,_i,_i],[_f,_f, 0.002,_f,_f,_f,_f,_f])
     ierr = psspy.snap(sfile=snp)
     assert ierr == 0
