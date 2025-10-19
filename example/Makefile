@@ -13,6 +13,8 @@ dyr = gyr_24_v34_1.dyr
 channels   = channels.idv
 cnv_script = convload_sadi.py
 
+runner1 = test_runner.py
+
 # config = foo
 
 RESULTS = results
@@ -31,7 +33,6 @@ PYTHON2 = python2
 estatico: reporte_flujos reporte_tensiones
 	awk 'FNR==1 && NR!=1 {next} {print}' $(BUILD)/*.frp > $(RESULTS)/flow.csv
 	awk 'FNR==1 && NR!=1 {next} {print}' $(BUILD)/*.vrp > $(RESULTS)/volt.csv
-	
 reporte_flujos:    $(patsubst %.sav, $(BUILD)/%.frp, $(sav))
 reporte_tensiones: $(patsubst %.sav, $(BUILD)/%.vrp, $(sav))
 
@@ -39,9 +40,10 @@ dinamico:    conversion compilacion simulacion
 conversion:  $(patsubst %.sav, $(BUILD)/%.cnv, $(sav))
 compilacion: $(BUILD)/usrdll.dll
 simulacion:  $(addprefix $(RESULTS)/,$(OUTX))
-	
 
-# ------------------------------------------------------------------------------
+runner: $(patsubst %.sav, $(BUILD)/runner1_%.txt, $(sav))
+
+# ESTATICO ---------------------------------------------------------------------
 $(BUILD)/%.frp $(BUILD)/%.vrp: $(BUILD)/%.acc | $(BUILD)
 	@echo -----------
 	@echo armando frp
@@ -77,7 +79,7 @@ $(BUILD)/%.dfx: %.sav $(sub) $(mon) $(con) | $(BUILD)
 		--con $(con) \
 		--dfx $@
 
-# ------------------------------------------------------------------------------
+# DINAMICO ---------------------------------------------------------------------
 $(RESULTS)/%.outx: $(BUILD)/usrdll.dll $(dll) | $(RESULTS) 
 	$(PYTHON) -m pssetools.dyn \
 		--outx $@ \
@@ -118,6 +120,13 @@ $(BUILD)/usrdll.dll: $(BUILD)/snapshot.snp $(BUILD)/conec.flx $(BUILD)/conet.flx
 	$(PYTHON2) -m pssetools.dll \
 		--dll $@ \
 		--sources $(BUILD)/conec.flx $(BUILD)/conet.flx $(src)
+
+# RUNNER -----------------------------------------------------------------------
+$(BUILD)/runner1_%.txt: %.sav | $(BUILD)
+	$(PYTHON2) -m pssetools.runner \
+		--sav $^ \
+		--report $@ \
+		--script $(runner1)
 
 # ------------------------------------------------------------------------------
 $(BUILD):

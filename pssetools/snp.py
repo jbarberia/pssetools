@@ -59,5 +59,3 @@ if __name__ == "__main__":
     }
     args = argument_parser(args_specs)
     run(**args)
-    
-    # TODO guardo que solo leo un unico valor de dyr
