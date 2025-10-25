@@ -34,8 +34,14 @@ def run(outx, chan, snp, dll, no_debug=False, keep_post_fault_case=False, **kwar
     for library in dll:
         psspy.addmodellibrary(library)
         
-    # instancio canales
-    psspy.runrspnsfile(chan)
+    # script previo inicializacion (canales)
+    if chan.lower().endswith(".idv"):
+        psspy.runrspnsfile(chan)
+
+    elif chan.lower().endswith(".py"):
+        with open(file) as f:
+            code = f.read()
+            exec(code)
     
     # inicializa
     if debug:
