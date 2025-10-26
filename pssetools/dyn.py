@@ -20,20 +20,24 @@ def export_initial_conditions_suspect(filename):
         f.write(data_io)
    
     
-def run(outx, chan, snp, dll, no_debug=False, keep_post_fault_case=False, **kwargs):
+def run(outx, chan, snp, dll, no_debug=False, keep_post_fault_case=False, keep_progress=False, **kwargs):
     debug = not no_debug
     
     # del outx obtengo el cnv y psa
     baseout = os.path.basename(outx).replace(".outx", "")
     sav, aut = baseout.split(SPLIT_CHAR)
     build_folder = os.path.dirname(snp)
-    
+
     # abro el caso y snp con las librerias
     psspy.case(os.path.join(build_folder, sav + ".cnv"))
     psspy.rstr(snp)
     for library in dll:
         psspy.addmodellibrary(library)
         
+    # manda una copia del progress
+    if keep_progress:        
+        ierr = psspy.t_progress_output(2, outx.replace(".outx", ".pdv"), [2, 0])
+    
     # script previo inicializacion (canales)
     if chan.lower().endswith(".idv"):
         psspy.runrspnsfile(chan)
@@ -42,19 +46,17 @@ def run(outx, chan, snp, dll, no_debug=False, keep_post_fault_case=False, **kwar
         with open(file) as f:
             code = f.read()
             exec(code)
-    
+
     # inicializa
     if debug:
-        t_device = sav + "_initial_conditions_suspect.txt"
-        ierr = psspy.t_progress_output(2, t_device)
+        # t_device = sav + "_initial_conditions_suspect.txt"
+        # ierr = psspy.t_progress_output(2, t_device)
         ierr = psspy.strt_2([1, 1], outx) 
-        ierr = psspy.t_progress_output(6, "")
+        # ierr = psspy.t_progress_output(6, "")
     
         if psspy.okstrt() != 0:
-            export_initial_conditions_suspect(t_device)
+            # export_initial_conditions_suspect(t_device)
             exit(1)
-        else:
-            os.remove(t_device)
     else:
         ierr = psspy.strt_2([1, 1], outx) 
     
@@ -83,6 +85,7 @@ if __name__ == "__main__":
         "dll": {"nargs": "*", "type": str},
         "no-debug": {"default": False, "action": "store_true"},
         "keep_post_fault_case": {"default": False, "action": "store_true"},
+        "keep_progress": {"default": False, "action": "store_true"},
     }    
     args = argument_parser(args_specs)
     run(**args)
