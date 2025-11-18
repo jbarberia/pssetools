@@ -2,6 +2,7 @@ import os
 import sys
 import psse34
 import psspy
+import pssarrays
 import argparse
 import configparser
 from ast import literal_eval
