@@ -88,8 +88,10 @@ def get_config(filename=None):
     return config
 
 
-if is_in_psse_gui():
-    print("cargar gui")
+if is_in_psse_gui():    
+    from .gui import gui
+    gui()
+
 else:
     old_stdout = sys.stdout
     try:
