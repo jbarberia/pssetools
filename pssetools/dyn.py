@@ -1,9 +1,8 @@
 from . import psse34
 from . import psspy
 from . import argument_parser
+import sys
 import os
-
-SPLIT_CHAR = "-"
 
 def export_initial_conditions_suspect(filename):
     import re
@@ -20,72 +19,58 @@ def export_initial_conditions_suspect(filename):
         f.write(data_io)
    
     
-def run(outx, chan, snp, dll, no_debug=False, keep_post_fault_case=False, keep_progress=False, **kwargs):
+def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):    
     debug = not no_debug
-    
-    # del outx obtengo el cnv y psa
-    baseout = os.path.basename(outx).replace(".outx", "")
-    sav, aut = baseout.split(SPLIT_CHAR)
-    build_folder = os.path.dirname(snp)
+    dirname = os.path.dirname(out)
+    basename = os.path.basename(out).split(".")[0]
+    os.makedirs(os.path.dirname(out))
 
     # abro el caso y snp con las librerias
-    psspy.case(os.path.join(build_folder, sav + ".cnv"))
-    psspy.rstr(snp)
+    ierr = psspy.case(cnv)
+    ierr = psspy.rstr(snp)
+
+    if ierr != 0:
+        sys.stderr.write("No existe el archivo {}\n".format(snp))
+        exit(1)
+
     for library in dll:
         psspy.addmodellibrary(library)
         
     # manda una copia del progress
-    if keep_progress:        
-        ierr = psspy.t_progress_output(2, outx.replace(".outx", ".pdv"), [2, 0])
+    t_device = os.path.join(dirname, basename + ".pdv")
+    ierr = psspy.t_progress_output(2, t_device, [2, 0])
     
-    # script previo inicializacion (canales)
-    if chan.lower().endswith(".idv"):
-        psspy.runrspnsfile(chan)
-
-    elif chan.lower().endswith(".py"):
-        with open(file) as f:
-            code = f.read()
-            exec(code)
-
     # inicializa
-    if debug:
-        # t_device = sav + "_initial_conditions_suspect.txt"
-        # ierr = psspy.t_progress_output(2, t_device)
-        ierr = psspy.strt_2([1, 1], outx) 
-        # ierr = psspy.t_progress_output(6, "")
-    
-        if psspy.okstrt() != 0:
-            # export_initial_conditions_suspect(t_device)
-            exit(1)
-    else:
-        ierr = psspy.strt_2([1, 1], outx) 
-    
+    ierr = psspy.strt_2([1, 1], out) 
+    if psspy.okstrt() != 0 and debug:        
+        sys.stderr.write("Error en la inicializacion - {} {}\n".format(cnv, snp))
+        exit(1)    
+    psspy.save(os.path.join(dirname, basename + "_T0.cnv"))
+    psspy.snap(sfile=os.path.join(dirname, basename + "_T0.snp"))
+    sys.stderr.write("{} incializado en T=0\n".format(basename))
+
     # corre simulacion
-    if os.path.isfile(aut + ".psa"):
-        psspy.psas(aut + ".psa", "simulacion.idv")
-        psspy.runrspnsfile("simulacion.idv")
-        os.remove("simulacion.idv")
+    with open(py) as f:
+        code = f.read()
+        exec(code)
     
-    if os.path.isfile(aut + ".py"):
-        file = aut + ".py"
-        with open(file) as f:
-            code = f.read()
-            exec(code)
+    # flujo postfalla
+    ierr, time = psspy.dsrval("TIME")
+    psspy.save(os.path.join(dirname, basename + "_T{:.0f}.cnv".format(time)))
+    psspy.snap(sfile=os.path.join(dirname, basename + "_T{:.0f}.snp".format(time)))
     
-    # guarda el caso post falla
-    if keep_post_fault_case:
-        psspy.save(outx.replace(".outx", "-postfault.cnv"))
+    psspy.progress("\n FIN SIMULACION\n")
+    sys.stderr.write("{} finalizado en T={:.0f}\n".format(basename, time))
 
 
 if __name__ == "__main__":    
-    args_specs = {        
-        "outx": {"type": str},                
-        "chan": {"type": str},
-        "snp": {"type": str},
+    args_specs = {
+        "cnv": {"type": str},        
+        "out": {"type": str},                
+        "snp": {"type": str},        
         "dll": {"nargs": "*", "type": str},
-        "no-debug": {"default": False, "action": "store_true"},
-        "keep_post_fault_case": {"default": False, "action": "store_true"},
-        "keep_progress": {"default": False, "action": "store_true"},
+        "py": {"type": str},
+        "no-debug": {"default": False, "action": "store_true"},        
     }    
     args = argument_parser(args_specs)
     run(**args)
