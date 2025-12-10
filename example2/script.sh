@@ -20,18 +20,20 @@ mkdir -p $build $log $results
 if [ -z "$1" ]; then # INTERFAZ si esta vacio el pedido ------------------------
     echo "Elegí una opción:"
     echo "1) estatico"
-    echo "2) compila"
-    echo "3) dinamico"
-    echo "4) clean"
-    echo "5) clean dinamico"
+    echo "2) cortocircuito"
+    echo "3) compila"
+    echo "4) dinamico"
+    echo "5) clean"
+    echo "6) clean dinamico"
     read -p "Ingrese opción: " opt
 
     case "$opt" in
         1) set -- "estatico" ;;
-        2) set -- "compila" ;;
-        3) set -- "dinamico" ;;
-        4) set -- "clean" ;;
-        5) set -- "clean_dinamico" ;;
+        2) set -- "cortocircuito" ;;
+        3) set -- "compila" ;;
+        4) set -- "dinamico" ;;
+        5) set -- "clean" ;;
+        6) set -- "clean_dinamico" ;;
         *) echo "Opción inválida"; exit 1 ;;
     esac
 fi
@@ -73,6 +75,17 @@ if [ "$1" = "estatico" ]; then # ESTATICO --------------------------------------
     awk 'FNR==1 && NR!=1 {next} {print}' $build/*.frp > $results/estatico_flujos.csv
     awk 'FNR==1 && NR!=1 {next} {print}' $build/*.vrp > $results/estatico_tensiones.csv
 
+elif [ "$1" = "cortocircuito" ]; then # CORTOCIRCUITO --------------------------
+    for sav in $savfiles
+    do
+        echo corriendo cortocircuito para $sav ...
+        (python -m pssetools.ascc \
+        --report $results/"${sav%.sav}"_cortocircuito.tsv \
+        --sav $sav \
+        --sub $sub ) > $log/"${sav%.sav}"_cortocircuito.log &
+    done
+    wait
+    read -p "Presione enter para finalizar ..."
 
 elif [ "$1" = "compila" ]; then # COMPILA --------------------------------------
     echo creando snapshot ...
@@ -88,9 +101,7 @@ elif [ "$1" = "compila" ]; then # COMPILA --------------------------------------
         --sources $build/cc.flx $build/ct.flx $(ls lib/*.lib) \
         --dll lib/usrdll.dll) | tee -a $log/compilacion.log        
 
-
 elif [ "$1" = "dinamico" ]; then # DINAMICO -------------------------------------
-    
     for sav in $savfiles
     do
         echo convirtiendo $sav a cnv ...
@@ -136,5 +147,3 @@ elif [ "$1" = "clean_dinamico" ]; then # Limpiar solo dinamico
     rm -rf $log/*.pdv $build/*.cnv $results/*/ 
     read -p "Presione enter para finalizar ..."   
 fi
-
-
