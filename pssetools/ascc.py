@@ -13,6 +13,7 @@ def run(sav, sub, config, report, **kwargs):
     config = get_config(config)
 
     # arma subsistema
+    basename = ".".join(os.path.basename(sav).split(".")[:-1])
     psspy.case(sav)
     subsystem = parse_sub(sub)
     buses = subsystem.get("CORTOCIRCUITO")
@@ -43,6 +44,7 @@ def run(sav, sub, config, report, **kwargs):
 
     ierr = psspy.t_progress_output(2, report, [0, 0])    
     header = [
+        "CASO",
         "BUS",
         "NAME",
         "KV",
@@ -64,6 +66,7 @@ def run(sav, sub, config, report, **kwargs):
         ierr, base = psspy.busdat(bus, "BASE")
         
         line = []
+        line.append("{}".format(basename))
         line.append("{:.0f}".format(bus))
         line.append("{}".format(name[:12].strip()))
         line.append("{:.1f}".format(base))

@@ -46,14 +46,16 @@ def run(acc, frp, vrp, config, **kwargs):
     df_flow.to_csv(
         frp,
         float_format=config["ARRBOX"]["NUMFMT_FLOW"],
-        index=False
+        index=False,
+        sep="\t"
     )
     
     df_volts = pd.concat(volt_data)
     df_volts.to_csv(
         vrp,
         float_format=config["ARRBOX"]["NUMFMT_VOLT"],
-        index=False
+        index=False,
+        sep="\t"
     )
         
         

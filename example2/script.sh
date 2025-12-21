@@ -10,7 +10,6 @@ sub=test.sub
 mon=test.mon
 con=test.con
 
-
 log="log"
 build="build"
 results="results"
@@ -72,19 +71,22 @@ if [ "$1" = "estatico" ]; then # ESTATICO --------------------------------------
     done
     wait
 
-    awk 'FNR==1 && NR!=1 {next} {print}' $build/*.frp > $results/estatico_flujos.csv
-    awk 'FNR==1 && NR!=1 {next} {print}' $build/*.vrp > $results/estatico_tensiones.csv
+    awk 'FNR==1 && NR!=1 {next} {print}' $build/*.frp > $results/estatico_flujos.tsv
+    awk 'FNR==1 && NR!=1 {next} {print}' $build/*.vrp > $results/estatico_tensiones.tsv
+    read -p "Presione enter para finalizar ..."
 
 elif [ "$1" = "cortocircuito" ]; then # CORTOCIRCUITO --------------------------
     for sav in $savfiles
     do
         echo corriendo cortocircuito para $sav ...
         (python -m pssetools.ascc \
-        --report $results/"${sav%.sav}"_cortocircuito.tsv \
+        --report $build/"${sav%.sav}".scf \
         --sav $sav \
         --sub $sub ) > $log/"${sav%.sav}"_cortocircuito.log &
     done
     wait
+
+    awk 'FNR==1 && NR!=1 {next} {print}' $build/*.scf > $results/cortocircuito.tsv
     read -p "Presione enter para finalizar ..."
 
 elif [ "$1" = "compila" ]; then # COMPILA --------------------------------------
@@ -100,6 +102,7 @@ elif [ "$1" = "compila" ]; then # COMPILA --------------------------------------
     (python2 -m pssetools.dll \
         --sources $build/cc.flx $build/ct.flx $(ls lib/*.lib) \
         --dll lib/usrdll.dll) | tee -a $log/compilacion.log        
+    read -p "Presione enter para finalizar ..."
 
 elif [ "$1" = "dinamico" ]; then # DINAMICO -------------------------------------
     for sav in $savfiles
@@ -144,6 +147,6 @@ elif [ "$1" = "clean" ]; then # Limpiar todo
     read -p "Presione enter para finalizar ..."
 
 elif [ "$1" = "clean_dinamico" ]; then # Limpiar solo dinamico
-    rm -rf $log/*.pdv $build/*.cnv $results/*/ 
-    read -p "Presione enter para finalizar ..."   
+    rm -rf $log/*.pdv $build/*.cnv $results/*/
+    read -p "Presione enter para finalizar ..."
 fi
