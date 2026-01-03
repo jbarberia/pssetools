@@ -78,8 +78,8 @@ def deep_update(base, updates):
 
 def get_config(filename=None):
     "devuelve una configuracion o la configuracion por defecto"
-    filename = os.path.join(os.path.dirname(__file__), "config.cfg")
-    config = config_parser(filename)
+    default_cfg = os.path.join(os.path.dirname(__file__), "config.cfg")
+    config = config_parser(default_cfg)
     
     if filename:
         new_config = config_parser(filename)

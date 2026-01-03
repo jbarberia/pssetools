@@ -8,7 +8,7 @@ import shutil
 def run(sav, acc, dfx, zipfile, config, **kwargs):
     config = get_config(config)
     tmp_zipfile = os.path.join(os.path.expanduser("~"), os.path.basename(zipfile))
-    
+
     # abro el caso y corro acc
     psspy.case(sav)
     function = getattr(psspy, config["ACC"]["ACTIVITY"].lower())    
