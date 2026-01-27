@@ -24,6 +24,8 @@ def run(sav, sub, config, report, **kwargs):
 
     # corre cortocircuito
     psspy.short_circuit_warning(0)
+    psspy.short_circuit_units(0)
+    psspy.short_circuit_z_units(0)
     psspy.short_circuit_coordinates(0)
     psspy.short_circuit_z_coordinates(0)
     ascc_config = {k.lower(): v for (k, v) in config["ASCC"].items()}
@@ -42,7 +44,7 @@ def run(sav, sub, config, report, **kwargs):
     thevz0_r = {bus: rlst["thevzpu"][i]["z0"].real for i, bus in enumerate(buses)}
     thevz0_x = {bus: rlst["thevzpu"][i]["z0"].imag for i, bus in enumerate(buses)}
 
-    ierr = psspy.t_progress_output(2, report, [0, 0])    
+    ierr = psspy.t_progress_output(2, report, [0, 0])
     header = [
         "CASO",
         "BUS",
