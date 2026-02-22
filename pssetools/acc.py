@@ -7,6 +7,22 @@ import shutil
 
 @pss_activity
 def run(sav, acc, dfx, zipfile=None, config=None, **kwargs):
+    """Runs ACCC contingency analysis.
+
+    Executes the contingency analysis activity specified in the configuration,
+    loads the distribution factors, and generates results in .acc and .zip formats.
+
+    Args:
+        sav: Input PSS/E case file (.sav).
+        acc: Output ACCC results file (.acc).
+        dfx: Input distribution factors file (.dfx).
+        zipfile: Optional output path for the zip report.
+        config: Optional path to a configuration file.
+        **kwargs: Additional arguments.
+
+    Returns:
+        The PSS/E activity return code.
+    """
     config = get_config(config)
     
     if zipfile is None:

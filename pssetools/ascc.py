@@ -10,6 +10,22 @@ import sys
 
 @pss_activity
 def run(sav, sub, config, report, **kwargs):
+    """Runs ASCC short circuit analysis.
+
+    Parses the subsystem from a .sub file, executes short circuit
+    calculations, and generates a formatted report including
+    three-phase and LG faults, and Thevenin impedances.
+
+    Args:
+        sav: Input PSS/E case file (.sav).
+        sub: Input subsystem file (.sub).
+        config: Configuration dictionary or path to configuration file.
+        report: Output report file.
+        **kwargs: Additional arguments.
+
+    Returns:
+        0 on success.
+    """
     config = get_config(config)
 
     # arma subsistema

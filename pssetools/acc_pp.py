@@ -7,6 +7,21 @@ from arrbox.accc_pp import CONTINGENCY_PP
 
 @pss_activity
 def run(acc, frp, vrp, config, **kwargs):
+    """Post-processes ACCC contingency analysis results.
+
+    Extracts flow and voltage data from an .acc file and saves them to
+    tab-separated reports.
+
+    Args:
+        acc: Input ACCC results file (.acc).
+        frp: Output flow report file (.frp).
+        vrp: Output voltage report file (.vrp).
+        config: Configuration dictionary or path to configuration file.
+        **kwargs: Additional arguments.
+
+    Returns:
+        0 on success.
+    """
     config = get_config(config)    
     rate = config["ARRBOX"]["RATING"]
 

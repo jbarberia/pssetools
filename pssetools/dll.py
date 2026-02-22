@@ -37,6 +37,22 @@ os.environ['INCLUDE'] = ";".join(incl_str)
 
 
 def run(dll, sources, **kwargs):
+    """Compiles and creates a PSS/E user model DLL.
+
+    Uses PSSE's environment manager and compiler tools to compile source
+    files (.flx, .f, .for, .f90) and link them with object/library files
+    to generate a .dll for user models.
+
+    This function usually works on python 2.
+
+    Args:
+        dll: Output path for the generated DLL.
+        sources: List of source, object, and library files.
+        **kwargs: Additional arguments.
+
+    Returns:
+        The result of the DLL creation process.
+    """
     subprocess.call(r"C:\Program Files (x86)\PTI\PSSE34\SET_PSSE_PATH.BAT")
     import psse_env_manager
     

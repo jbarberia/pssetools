@@ -9,6 +9,22 @@ _s = psspy.getdefaultchar()
 
 @pss_activity
 def run(sav, snp, dyr, cc, ct, **kwargs):
+    """Creates a PSS/E snapshot (.snp) by merging multiple dynamic files.
+
+    Loads .dyr files, generates and merges CONEC/CONET source files (.flx),
+    and configures dynamic simulation parameters before saving the snapshot.
+
+    Args:
+        sav: Input PSS/E case file (.sav).
+        snp: Output snapshot file (.snp).
+        dyr: List of dynamic data files (.dyr).
+        cc: Path for the CONEC (.flx) source file.
+        ct: Path for the CONET (.flx) source file.
+        **kwargs: Additional arguments.
+
+    Returns:
+        The PSS/E activity return code.
+    """
     # genero el primer dyr
     if len(dyr) == 0:
         raise ValueError("No hay *.dyr a cargar")

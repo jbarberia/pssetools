@@ -11,11 +11,16 @@ from functools import wraps
 
 
 def pss_activity(func):
-    """
-    Decorator to standardize PSS/E activity execution:
-    - Case loading (sav or cnv)
-    - Error handling for return codes
-    - Basic cleanup
+    """Decorator to standardize PSS/E activity execution.
+
+    Handles case loading (sav or cnv), error code verification, and
+    basic cleanup of output redirection on failure.
+
+    Args:
+        func: The activity function to wrap.
+
+    Returns:
+        The wrapped function.
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -46,11 +51,23 @@ def pss_activity(func):
 
 
 def is_in_psse_gui():
+    """Checks if the script is running inside the PSS/E GUI.
+
+    Returns:
+        True if running in psse34.exe, False otherwise.
+    """
     return os.path.basename(sys.executable).lower() == "psse34.exe"
 
 
 def argument_parser(args_specs):
-    "crea un parser automatico para cada extension"
+    """Creates an automatic argument parser based on provided specifications.
+
+    Args:
+        args_specs: Dictionary defining arguments and their argparse specs.
+
+    Returns:
+        Parsed arguments as a dictionary.
+    """
     parser = argparse.ArgumentParser()
     for arg, specs in args_specs.items():
         parser.add_argument("--{}".format(arg), **specs)
@@ -78,6 +95,14 @@ def argument_parser(args_specs):
     
     
 def converter(in_str):
+    """Attempts to convert a string to its literal Python value.
+
+    Args:
+        in_str: The string to convert.
+
+    Returns:
+        The converted value or the original string if conversion fails.
+    """
     try:
         out = literal_eval(in_str)
     except Exception:
@@ -86,7 +111,14 @@ def converter(in_str):
 
 
 def config_parser(filename):
-    "parser de un .cfg a un diccionario con comentarios en linea"
+    """Parses a .cfg file into a dictionary, supporting inline comments.
+
+    Args:
+        filename: Path to the configuration file.
+
+    Returns:
+        A dictionary containing the parsed configuration sections and keys.
+    """
     config_file = configparser.ConfigParser(inline_comment_prefixes = ("#",))
     config_file.optionxform = lambda option: option
     config_file.read(filename)
@@ -100,7 +132,15 @@ def config_parser(filename):
 
 
 def deep_update(base, updates):
-    "Recursively update a dict of dicts."
+    """Recursively updates a dictionary of dictionaries.
+
+    Args:
+        base: The base dictionary to update.
+        updates: The dictionary containing updates.
+
+    Returns:
+        The updated base dictionary.
+    """
     for key, value in updates.items():
         if (
             key in base
@@ -114,7 +154,17 @@ def deep_update(base, updates):
 
 
 def get_config(filename=None):
-    "devuelve una configuracion o la configuracion por defecto"
+    """Retrieves the application configuration.
+
+    Loads the default configuration and merges it with an optional
+    user-provided configuration file.
+
+    Args:
+        filename: Optional path to a user configuration file.
+
+    Returns:
+        The merged configuration dictionary.
+    """
     default_cfg = os.path.join(os.path.dirname(__file__), "config.cfg")
     config = config_parser(default_cfg)
     

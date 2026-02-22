@@ -5,6 +5,13 @@ import os
 from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, runner
 
 def app():
+    """Main entry point for the pssetools CLI.
+
+    Defines the command-line interface, including subparsers for various
+    PSS/E activities (acc, ascc, cnv, dfx, dyn, snp, dll, runner),
+    handles file auto-assignment by extension, and dispatches the
+    execution to the appropriate module.
+    """
     # Common arguments for most activities
     parent_parser = argparse.ArgumentParser(add_help=False)
     parent_parser.add_argument("--sav", type=str, help="PSS/E Case (.sav)")

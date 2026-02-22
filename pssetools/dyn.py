@@ -5,6 +5,14 @@ import sys
 import os
 
 def export_initial_conditions_suspect(filename):
+    """Extracts 'INITIAL CONDITIONS SUSPECT' from a progress output file.
+
+    Parses the input file for a specific pattern of suspected initial conditions
+    and overwrites the file with only that information if found.
+
+    Args:
+        filename: The path to the progress output file to parse.
+    """
     import re
     
     with open(filename) as f:
@@ -19,6 +27,24 @@ def export_initial_conditions_suspect(filename):
    
 @pss_activity
 def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):    
+    """Executes a dynamic simulation.
+
+    Loads a converted case (.cnv), applies snapshot (.snp) and user-defined 
+    libraries (.dll), and runs the simulation defined in a Python script (.py).
+    Intermediate results are saved as .cnv and .snp at T=0 and end of simulation.
+
+    Args:
+        out: Path for the simulation output file (.out).
+        cnv: Input converted case file (.cnv).
+        snp: Input snapshot file (.snp).
+        dll: List of user DLLs to add to the simulation.
+        py: Path to the Python simulation script.
+        no_debug: If True, suppresses debug output on initialization failure.
+        **kwargs: Additional arguments.
+
+    Returns:
+        0 on success.
+    """
     debug = not no_debug
     dirname = os.path.dirname(out)
     basename = os.path.basename(out).split(".")[0]

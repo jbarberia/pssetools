@@ -9,7 +9,12 @@ import re
 sys.argv = ["psse"]
 
 def sub_mon_con():
-    "Monitoreo los elementos seleccionados en el SLD"
+    """Generates subsystem, monitor, and contingency definitions from selected SLD elements.
+
+    Identifies selected components in the active SLD (SliderPy) and 
+    extracts bus, machine, transformer, and branch info to create
+    formatted PSS/E report-style configuration.
+    """
     mydoc = sliderPy.GetActiveDocument()
     diagram = mydoc.GetDiagram()
     components = diagram.GetComponents()
@@ -84,6 +89,12 @@ def sub_mon_con():
 
 
 def canales():
+    """Extracts dynamic recording channels from selected SLD elements.
+
+    Identifies selected buses, machines, and branches in the active SLD 
+    and generates PSS/E batch commands to add frequency, voltage, 
+    power, and speed recording channels.
+    """
     mydoc = sliderPy.GetActiveDocument()
     diagram = mydoc.GetDiagram()
     components = diagram.GetComponents()
@@ -140,6 +151,11 @@ def canales():
     
     
 def gui():
+    """Initializes and displays the PSSETOOLS Tkinter window.
+
+    Creates a compact, floating GUI with options to generate
+    definitions or add channels based on active diagram selection.
+    """
     # Create window
     root = tk.Tk()
     root.title("PSSETOOLS")

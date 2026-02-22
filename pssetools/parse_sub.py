@@ -7,14 +7,17 @@ from collections import namedtuple
 Bus = namedtuple("Bus", ["number", "area", "owner", "zone", "kv"])
 
 def parse_sub(filename):
-    """Lee los valores del archivo de configuración de subsistema para poder 
-    pasarlo a la función psspy.bsys.
+    """Parses a subsystem configuration file (.sub) for PSS/E.
+
+    Reads subsystem definitions from the file and returns a dictionary
+    mapping subsystem names to lists of bus numbers.
 
     Args:
-        filename (str): archivo de subsistema en formato *.sub
+        filename: Path to the .sub file.
 
     Returns:
-        dict: elementos del subsistema donde las llaves son los nombres y los valores son listas con las barras del subsistema.
+        Dictionary where keys are subsystem names and values are lists 
+        of associated bus numbers.
     """
 
     # lee archivo
@@ -55,6 +58,14 @@ def parse_sub(filename):
 
 
 def remove_comments(string):
+    """Removes 'COM' prefixed comments from a string.
+
+    Args:
+        string: The multi-line string to process.
+
+    Returns:
+        The string with comment lines removed.
+    """
     lines = string.splitlines()
     lines = [l for l in lines if not l.strip().startswith("COM")]
     string = "\n".join(lines)
@@ -62,6 +73,14 @@ def remove_comments(string):
 
 
 def get_subsystem_blocks(string):
+    """Identifies and extracts 'SUBSYSTEM' or 'SYSTEM' blocks from a string.
+
+    Args:
+        string: The processed .sub file content.
+
+    Returns:
+        A list of strings, each representing a subsystem block.
+    """
     blocks = []
     block = []
 
@@ -94,6 +113,14 @@ def get_subsystem_blocks(string):
 
 
 def get_join_blocks(string):
+    """Extracts joined element groups within a subsystem block.
+
+    Args:
+        string: A single subsystem block string.
+
+    Returns:
+        A list of strings representing joined element specifications.
+    """
     blocks = []
     block = []
 
@@ -132,6 +159,14 @@ def get_join_blocks(string):
 
 
 def get_name(block):
+    """Extracts the subsystem name from its block header.
+
+    Args:
+        block: A subsystem block string.
+
+    Returns:
+        The cleaned subsystem name.
+    """
     name = re.search(r"[SUBSYSTEM|SYSTEM]\s+(.*)", block).group(1)
     name = name.replace("'", "")
     name = name.replace('"', "")
@@ -139,6 +174,14 @@ def get_name(block):
 
 
 def extract_buses(only_in_service=True):
+    """Queries PSS/E for bus data in the loaded case.
+
+    Args:
+        only_in_service: If True, only retrieves buses that are in service.
+
+    Returns:
+        A list of Bus namedtuples containing number, area, owner, zone, and kV.
+    """
     flag = 1 if only_in_service else 2       
     ierr1, (number, area, owner, zone,) = psspy.abusint(-1, flag, ["NUMBER", "AREA", "OWNER", "ZONE"])    
     ierr2, (kv,) = psspy.abusreal(-1, flag, ["BASE"])
@@ -157,7 +200,14 @@ def extract_buses(only_in_service=True):
 
 
 def parse_areas(block):
-    "Devuelve los buses en las areas dadas"
+    """Identifies bus numbers belonging to specified areas in a block.
+
+    Args:
+        block: A joined element block string.
+
+    Returns:
+        A set of bus numbers within the specified areas.
+    """
     areas = []
 
     # single buses
@@ -183,6 +233,14 @@ def parse_areas(block):
 
 
 def parse_buses(block):
+    """Identifies specific bus numbers or ranges defined in a block.
+
+    Args:
+        block: A joined element block string.
+
+    Returns:
+        A set of bus numbers.
+    """
     buses = []
 
     # single buses
@@ -219,7 +277,14 @@ def parse_buses(block):
     
 
 def parse_owners(block):
-    "Devuelve los buses en los owners dados"
+    """Identifies bus numbers belonging to specified owners in a block.
+
+    Args:
+        block: A joined element block string.
+
+    Returns:
+        A set of bus numbers belonging to specified owners.
+    """
     owners = []
 
     # single buses
@@ -243,7 +308,14 @@ def parse_owners(block):
 
 
 def parse_zones(block):
-    "Devuelve los buses en las zonas dadas"
+    """Identifies bus numbers belonging to specified zones in a block.
+
+    Args:
+        block: A joined element block string.
+
+    Returns:
+        A set of bus numbers within the specified zones.
+    """
     zones = []
 
     # single buses
@@ -267,6 +339,14 @@ def parse_zones(block):
 
 
 def parse_kv(block):
+    """Identifies bus numbers within specified kV levels or ranges.
+
+    Args:
+        block: A joined element block string.
+
+    Returns:
+        A set of bus numbers matching the kV criteria.
+    """
     buses = extract_buses(only_in_service=True)
 
     # single buses
