@@ -1,3 +1,9 @@
+"""Initialization script for pssetools workspaces.
+
+This script creates the standard directory structure (lib, log, build, results)
+and copies template configuration and scripts from the package to the 
+current working directory.
+"""
 import os
 import shutil
 

@@ -172,3 +172,6 @@ def gui():
 
     # Start GUI loop
     root.mainloop()
+
+if __name__ == "__main__":
+    gui()

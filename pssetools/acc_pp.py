@@ -61,7 +61,7 @@ def run(acc, frp, vrp, config, **kwargs):
         frp,
         float_format=config["ARRBOX"]["NUMFMT_FLOW"],
         index=False,
-        sep="	"
+        sep="\t"
     )
     
     df_volts = pd.concat(volt_data)
@@ -69,7 +69,7 @@ def run(acc, frp, vrp, config, **kwargs):
         vrp,
         float_format=config["ARRBOX"]["NUMFMT_VOLT"],
         index=False,
-        sep="	"
+        sep="\t"
     )
     
     return 0

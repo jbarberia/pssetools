@@ -50,15 +50,6 @@ def pss_activity(func):
     return wrapper
 
 
-def is_in_psse_gui():
-    """Checks if the script is running inside the PSS/E GUI.
-
-    Returns:
-        True if running in psse34.exe, False otherwise.
-    """
-    return os.path.basename(sys.executable).lower() == "psse34.exe"
-
-
 def argument_parser(args_specs):
     """Creates an automatic argument parser based on provided specifications.
 
@@ -175,18 +166,19 @@ def get_config(filename=None):
     return config
 
 
-if is_in_psse_gui():    
-    from .gui import gui
-    gui()
+def is_in_psse_gui():                                               
+    """Checks if the script is running inside the PSS/E GUI.        
+                                                                    
+    Returns:                                                        
+        True if running in psse34.exe, False otherwise.             
+    """                                                             
+    return os.path.basename(sys.executable).lower() == "psse34.exe" 
 
-else:
-    old_stdout = sys.stdout
-    try:
-        sys.stdout = open(os.devnull, 'w')
-        ierr = psspy.psseinit()
-    finally:
-        sys.stdout.close()
-        sys.stdout = old_stdout
-    assert ierr == 0
 
+# Start of the program
 default_config = get_config()
+psspy.psseinit()
+if is_in_psse_gui():         
+    from .gui import gui     
+    gui()                    
+                             
