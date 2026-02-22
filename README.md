@@ -1,20 +1,107 @@
-Este conjunto de funcionalidades permiten hacer un estudio eléctrico.
-Ver la carpeta example para ver un ejemplo de uso.
+# PSS/E Tools CLI
 
-Los datos minimos son:
+Una herramienta de línea de comandos profesional para automatizar actividades en PSS/E (Power System Simulator for Engineering) utilizando Python.
 
-- sav (casos del psse)
-- sub (para resolver casos estaticos)
-- mon (para resolver casos estaticos)
-- con (para resolver casos estaticos)
-- dyr, lib y dll (para simulaciones dinamicas)
-- py  (para controlar la simulacion dinamica)
+## Características Principales
 
-El flujo de trabajo sería el siguiente, para preparar los casos:
+- **CLI Centralizada:** Acceso a todas las actividades a través de un único punto de entrada (`pssetools`).
+- **DRY (Don't Repeat Yourself):** Inicialización de PSS/E y carga de casos abstraída mediante decoradores.
+- **Auto-asignación Inteligente:** Capacidad de reconocer archivos por su extensión (`.sav`, `.dyr`, `.acc`, etc.) para simplificar los comandos.
+- **Flujos de Trabajo Automatizados:** Soporte para análisis de contingencias (ACCC), cortocircuito (ASCC), simulaciones dinámicas y generación de snapshots.
 
-1.  Se arman los casos bases *.sav
-1.  Se definen los sub, mon y con para las simulaciones estaticas
-1.  Se crea el snapshot y se compila los modelos
-1.  Se cargan los canales sobre el snapshot creado (este paso es manual - pero se puede guardar un idv)
-1.  Se realizan las simulaciones necesarias
+---
 
+## Instalación
+
+Se recomienda instalar el paquete en modo editable para habilitar el comando `pssetools` directamente:
+
+```bash
+pip install -e .
+```
+
+Si no se desea instalar, se puede ejecutar mediante el módulo de Python:
+```bash
+python -m pssetools --help
+```
+
+---
+
+## Uso de la CLI
+
+### Sintaxis General
+```bash
+pssetools [actividad] [opciones] [archivos...]
+```
+
+### Comandos Disponibles
+
+| Comando | Actividad |
+| :--- | :--- |
+| `acc` | Análisis de contingencias AC (ACCC). |
+| `acc-pp` | Post-procesamiento de archivos `.acc` a reportes CSV/TSV. |
+| `ascc` | Análisis de cortocircuito (ASCC). |
+| `dfx` | Construcción de factores de distribución (DFAX). |
+| `snp` | Generación de snapshots dinámicos (`.snp`). |
+| `cnv` | Conversión de casos estáticos a dinámicos. |
+| `dyn` | Ejecución de simulaciones dinámicas. |
+| `dll` | Compilación de modelos de usuario (DLL). |
+| `runner` | Ejecución de scripts de Python personalizados dentro del entorno PSS/E. |
+
+---
+
+## Ejemplo de Flujo de Trabajo (Carpeta `example`)
+
+La carpeta `example` contiene un entorno de trabajo completo con scripts de automatización:
+
+### 1. Análisis Estático (Flujos y Contingencias)
+Genera factores de distribución, corre el análisis de contingencias y exporta resultados a tablas legibles:
+```bash
+cd example
+./script.sh estatico
+```
+
+### 2. Preparación Dinámica (Snapshot y DLL)
+Compila los modelos de usuario y genera el archivo de snapshot necesario para simulaciones:
+```bash
+./script.sh compila
+```
+
+### 3. Simulación Dinámica
+Convierte el caso y corre las simulaciones definidas en los archivos `.py` (ej. `flat1.py`):
+```bash
+./script.sh dinamico
+```
+
+---
+
+## Lógica de Auto-asignación
+
+Para facilitar el uso, el CLI asigna automáticamente los archivos pasados como argumentos posicionales según su extensión:
+
+**Comando explícito:**
+```bash
+pssetools acc --sav sistema.sav --dfx estudio.dfx --acc salida.acc
+```
+
+**Comando simplificado (Equivalente):**
+```bash
+pssetools acc sistema.sav estudio.dfx salida.acc
+```
+
+---
+
+## Configuración
+
+El comportamiento de los comandos se puede ajustar mediante el archivo `pssetools/config.cfg`. Se puede pasar un archivo de configuración personalizado con el flag `--config`:
+
+```bash
+pssetools acc sistema.sav --config mi_configuracion.cfg
+```
+
+---
+
+## Requisitos
+
+- PSS/E 34 (instalado en la ruta por defecto).
+- Python compatible con la versión de PSS/E (usualmente 2.7 o 3.x).
+- Dependencias: `pandas` (para post-procesamiento), `arrbox` (dependencia externa de PSS/E).

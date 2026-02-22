@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import psse34
@@ -6,6 +7,42 @@ import pssarrays
 import argparse
 import configparser
 from ast import literal_eval
+from functools import wraps
+
+
+def pss_activity(func):
+    """
+    Decorator to standardize PSS/E activity execution:
+    - Case loading (sav or cnv)
+    - Error handling for return codes
+    - Basic cleanup
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        sav = kwargs.get('sav')
+        cnv = kwargs.get('cnv')
+        
+        if sav:
+            ierr = psspy.case(sav)
+            if ierr != 0:
+                raise Exception("Error loading case {}: {}".format(sav, ierr))
+        elif cnv:
+            ierr = psspy.case(cnv)
+            if ierr != 0:
+                raise Exception("Error loading case {}: {}".format(cnv, ierr))
+        
+        try:
+            result = func(*args, **kwargs)
+        except Exception as e:
+            # Ensure output is redirected back to screen on failure if it was redirected
+            psspy.t_progress_output(1, "", [0, 0])
+            raise e
+        
+        if isinstance(result, int) and result > 0:
+            raise Exception("Activity {} failed with error code: {}".format(func.__name__, result))
+        
+        return result
+    return wrapper
 
 
 def is_in_psse_gui():

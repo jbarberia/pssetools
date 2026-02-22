@@ -1,12 +1,13 @@
+from __future__ import print_function
 import os
 import sys
 import subprocess
 
-subprocess.call(r"C:\Program Files (x86)\PTI\PSSE34\SET_PSSE_PATH.BAT")
+
 
 from . import psse34
-from . import argument_parser
-import psse_env_manager
+
+
 
 path_str = [
     r"C:\Program Files (x86)\Intel\oneAPI\compiler\2024.1\bin32",
@@ -36,6 +37,9 @@ os.environ['INCLUDE'] = ";".join(incl_str)
 
 
 def run(dll, sources, **kwargs):
+    subprocess.call(r"C:\Program Files (x86)\PTI\PSSE34\SET_PSSE_PATH.BAT")
+    import psse_env_manager
+    
     # remueve archivos viejos
     if os.path.isfile(dll): os.remove(dll)
 
@@ -64,16 +68,11 @@ def run(dll, sources, **kwargs):
         majorversion=1, minorversion=0, buildversion=0, companyname='', mypathlib=False,
         keep=False, keepf=False)
     
-    assert ierr == 0
+    if ierr != 0:
+        raise Exception("Error creating DLL: {}".format(ierr))
     
     # retiro .lib
-    os.remove(dll.replace(".dll", ".lib"))
-    
-    
-if __name__ == "__main__":    
-    args_specs = {        
-        "dll": {"type": str}, 
-        "sources": {"nargs": "*", "type": str}
-    }    
-    args = argument_parser(args_specs)
-    run(**args)
+    lib_file = dll.replace(".dll", ".lib")
+    if os.path.exists(lib_file):
+        os.remove(lib_file)
+    return ierr

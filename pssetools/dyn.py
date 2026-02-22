@@ -1,37 +1,34 @@
-from . import psse34
+from __future__ import print_function
 from . import psspy
-from . import argument_parser
+from . import pss_activity
 import sys
 import os
 
 def export_initial_conditions_suspect(filename):
     import re
-    import io    
     
     with open(filename) as f:
         content = f.read()        
     
     pattern = r"INITIAL CONDITIONS SUSPECT:\n(.*)\n^"
-    initial_conditions = re.search(pattern, content, re.DOTALL | re.MULTILINE).group(1)        
-    data_io = u"{}".format(initial_conditions)
-    
-    with open(filename, "w") as f:
-        f.write(data_io)
+    match = re.search(pattern, content, re.DOTALL | re.MULTILINE)
+    if match:
+        initial_conditions = match.group(1)        
+        with open(filename, "w") as f:
+            f.write(initial_conditions)
    
-    
+@pss_activity
 def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):    
     debug = not no_debug
     dirname = os.path.dirname(out)
     basename = os.path.basename(out).split(".")[0]
-    os.makedirs(os.path.dirname(out))
+    if dirname and not os.path.exists(dirname):
+        os.makedirs(dirname)
 
-    # abro el caso y snp con las librerias
-    ierr = psspy.case(cnv)
+    # abro snp con las librerias (cnv ya fue abierto por pss_activity)
     ierr = psspy.rstr(snp)
-
     if ierr != 0:
-        sys.stderr.write("No existe el archivo {}\n".format(snp))
-        exit(1)
+        raise Exception("Error loading snapshot {}: {}".format(snp, ierr))
 
     for library in dll:
         psspy.addmodellibrary(library)
@@ -43,8 +40,8 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     # inicializa
     ierr = psspy.strt_2([1, 1], out) 
     if psspy.okstrt() != 0 and debug:        
-        sys.stderr.write("Error en la inicializacion - {} {}\n".format(cnv, snp))
-        exit(1)    
+        raise Exception("Error en la inicializacion - {} {}".format(cnv, snp))
+        
     psspy.save(os.path.join(dirname, basename + "_T0.cnv"))
     psspy.snap(sfile=os.path.join(dirname, basename + "_T0.snp"))
     sys.stderr.write("{} incializado en T=0\n".format(basename))
@@ -61,16 +58,4 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     
     psspy.progress("\n FIN SIMULACION\n")
     sys.stderr.write("{} finalizado en T={:.0f}\n".format(basename, time))
-
-
-if __name__ == "__main__":    
-    args_specs = {
-        "cnv": {"type": str},        
-        "out": {"type": str},                
-        "snp": {"type": str},        
-        "dll": {"nargs": "*", "type": str},
-        "py": {"type": str},
-        "no-debug": {"default": False, "action": "store_true"},        
-    }    
-    args = argument_parser(args_specs)
-    run(**args)
+    return 0
