@@ -2,7 +2,7 @@ from __future__ import print_function
 import argparse
 import sys
 import os
-from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, runner
+from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, runner, setup
 
 def app():
     """Main entry point for the pssetools CLI.
@@ -93,6 +93,9 @@ def app():
     runner_p.add_argument("--report", type=str, help="Output report file")
     add_files_arg(runner_p)
 
+    # setup
+    setup_p = subparsers.add_parser("setup", help="Initialize workspace with templates and folders")
+
     # Show help if no subcommand is provided
     if len(sys.argv) == 1:
         parser.print_help()
@@ -162,7 +165,8 @@ def app():
         "dyn": dyn,
         "snp": snp,
         "dll": dll,
-        "runner": runner
+        "runner": runner,
+        "setup": setup
     }
     
     if cmd in modules:
