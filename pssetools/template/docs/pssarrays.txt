@@ -1,0 +1,320 @@
+Help on module pssarrays:
+
+NAME
+    pssarrays - PSSE Bulk Results Retrival/Processing
+
+DESCRIPTION
+    Result retrival Python module "pssarrays" is converted to Python package "arrbox".
+    This is done to provide object access instead of function access.
+    
+    Using Python package "arrbox" it is possible to create multiple objects and compare
+    PSSE results. For example to compare ACCC results from multiple .acc files,
+    simply create multiple objects, get solution for selected contingency from each object
+    and then compare.
+    
+    Python module "pssarrays" had following classes and functions. You will not need
+    any code changes to access them. That is, for example, pssarrays.accc_solution(..) will work.
+    However, improved way to use them is to use Python package "arrbox".
+        Classes
+            FAULT_SUMMARY, GIC, GICMAPS
+        Functions
+            accc_solution, accc_solution_report, accc_summary, accc_summary_report,
+                accc_violations_report
+            ascc_currents, iecs_currents
+            otdf_factors
+            pv_solution, pv_solution_report, pv_summary, pv_summary_report
+            qv_solution, qv_solution_report, qv_summary, qv_summary_report
+            sensitivity_flow_to_mw, sensitivity_flow_to_mw_report
+    
+    "arrbox" package contains:
+        accc_pp, ascc, dfax_pp, fault, gic, gicmaps, iecs, pv_pp, qv_pp, sensitivity_flow_to_mw
+    
+        ------------------------------------------------------------------------------
+        accc_pp : Contingency Analysis Output File (.acc) Post Processing
+        dfax_pp : Distribution Factors  Output File (.dfx) Post Processing
+        ------------------------------------------------------------------------------
+        ascc    : Calculate fault currents using PSSE activity ASCC
+                  (does not include LINOUT, LINEND and LINOPN faults)
+        iecs    : Calculate fault currents using PSSE activity IECS (IEC 60909)
+                  (does not include LINOUT, LINEND and LINOPN faults)
+        fault   : Calculate fault currents using PSSE activity ASCC
+                  (includes LINOUT, LINEND and LINOPN faults)
+        ------------------------------------------------------------------------------
+        gic        : GIC Calculations
+        gicmaps    : Plot GIC results on maps
+        gicthermal : Plot GIC Transformer Thermal Analysis Results
+        ------------------------------------------------------------------------------
+        pv_pp   : PV Analysis Output File (.pv) Post Processing
+        qv_pp   : QV Analysis Output File (.qv) Post Processing
+        ------------------------------------------------------------------------------
+        sensitivity_flow_to_mw: Calculate Sensitivity Factors of a branch flow to
+                                MW power at generator and load buses
+        ------------------------------------------------------------------------------
+    
+    How to get help? For example:
+        import pssarrays
+        help(pssarrays)
+        import arrbox
+        help(arrbox)
+        import arrbox.accc_pp
+        help(arrbox.accc_pp)
+    
+    arrbox.accc_pp:
+        class CONTINGENCY_PP
+         |  Methods defined here:
+         |     __init__(..)
+         |     solution(..)
+         |     solution_options(..)
+         |     solution_report(..)
+         |     summary()
+         |     summary_report(..)
+         |     violations_report(..)
+    
+    arrbox.ascc:
+         |  Functions defined here:
+         |     ascc_currents(..)
+    
+    arrbox.dfax_pp:
+        class DFAX_PP
+         |  Methods defined here:
+         |     __init__(..)
+         |     otdf_factors(..)
+         |     otdf_factors_report(..)
+         |     summary()
+         |     summary_report(..)
+    
+    arrbox.fault:
+        class FAULT_SUMMARY
+         |  Methods defined here:
+         |     __init__(..)
+         |     text_report(..)
+    
+    arrbox.gic:
+        class GIC
+         |  Methods defined here:
+         |     __init__(..)
+         |     gicoutput_for_maps(..)
+         |     qtotal_report(..)
+         |     text_report(..)
+    
+    arrbox.gicmaps:
+        class GICMAPS
+         |  Methods defined here:
+         |     __init__(..)
+         |     annotate_substations(..)
+         |     annotate_text(..)
+         |     datapoint_xy_from_longitude_latiude(..)
+         |     plot_branch_gicflows(..)
+         |     plot_bus_voltages(..)
+         |     plot_qtotal(..)
+         |     plot_qtotal_barchart(..)
+         |     plot_substation_gicflows(..)
+         |     plots_close(..)
+         |     plots_show(..)
+         |     set_latitude_options(..)
+         |     set_legend_options_kv(..)
+         |     set_legend_options_ss_gic_desc(..)
+         |     set_legend_options_ss_gic_values(..)
+         |     set_legend_options_voltage_pu_desc(..)
+         |     set_legend_options_voltage_pu_values(..)
+         |     set_longitude_options(..)
+         |     set_options_base_kv_colors(..)
+         |     set_options_voltage_pu_colors(..)
+         |     set_state_boundary_options(..)
+         |     set_title_options(..)
+         |     set_title_options_qtotal(..)
+         |     set_xlabel_options(..)
+         |     set_xlabel_options_qtotal(..)
+         |     set_ylabel_options(..)
+         |     set_ylabel_options_qtotal(..)
+    
+    arrbox.gicthermal:
+        class GICTHERMAL
+         |  Methods defined here:
+         |     __init__(..)
+         |     get_data(..)
+         |     pdf_close(..)
+         |     pdf_open(..)
+         |     plot_event_benchmark(..)
+         |     plot_event_supplemental(..)
+         |     plot_transformer_gict(..)
+         |     plots_close(..)
+         |     plots_show(..)
+    
+    arrbox.iecs:
+         |  Functions defined here:
+         |     iecs_currents(..)
+    
+    arrbox.pv_pp:
+        class PV_PP
+         |  Methods defined here:
+         |     __init__(..)
+         |     solution(..)
+         |     solution_report(..)
+         |     summary()
+         |     summary_report(..)
+    
+    arrbox.qv_pp:
+        class QV_PP
+         |  Methods defined here:
+         |     __init__(..)
+         |     solution(..)
+         |     solution_report(..)
+         |     summary()
+         |     summary_report(..)
+    
+    arrbox.sensitivity_flow_to_mw:
+         |  Functions defined here:
+         |     sensitivity_flow_to_mw(..)
+         |     sensitivity_flow_to_mw_report(..)
+    
+    Usage Notes:
+    Contingency Analysis Results Retrival
+    (a) Using arrbox package
+        import arrbox.accc_pp
+        accobj = arrbox.accc_pp.CONTINGENCY_PP(accfile)
+        accobj.solution(..)
+        accobj.solution_options(..)
+        accobj.solution_report(..)
+        accobj.summary()
+        accobj.summary_report(..)
+        accobj.violations_report(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        pssarrays.accc_solution(accfile, ..)
+        pssarrays.accc_solution_report(accfile, ..)
+        pssarrays.accc_summary(accfile, ..)
+        pssarrays.accc_summary_report(accfile, ..)
+        pssarrays.accc_violations_report(accfile, ..)
+    
+    DFAX Factors Retrival
+    (a) Using arrbox package
+        import arrbox.dfax_pp
+        dfxobj = arrbox.dfax_pp.DFAX_PP(dfxfile)
+        dfxobj.otdf_factors(..)
+        dfxobj.otdf_factors_report(..)
+        dfxobj.summary()
+        dfxobj.summary_report(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        robj = pssarrays.otdf_factors(dfxfile)
+    
+    Run ASCC Fault Calculations and retrieve Fault Currents
+    (a) Using arrbox package
+        import arrbox.ascc
+        robj = arrbox.ascc.ascc_currents(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        robj = pssarrays.ascc_currents(..)
+    
+    Run Specified Fault Calculations and retrieve Fault Currents
+    (a) Using arrbox package
+        import arrbox.fault
+        fltobj = arrbox.fault.FAULT_SUMMARY(..)
+        fltobj.text_report(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        fltobj = pssarrays.FAULT_SUMMARY(..)
+        fltobj.text_report(..)
+    
+    Run GIC calculations and retrieve results
+    (a) Using arrbox package
+        import arrbox.gic
+        gicobj = arrbox.gic.GIC(..)
+        gicobj.gicoutput_for_maps(..)
+        gicobj.qtotal_report(..)
+        gicobj.text_report(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        gicobj = pssarrays.GIC(..)
+        gicobj.gicoutput_for_maps(..)
+        gicobj.qtotal_report(..)
+        gicobj.text_report(..)
+    
+    Plot GIC results on maps
+    (a) Using arrbox package
+        import arrbox.gicmaps
+        gicmapsobj = arrbox.gicmaps.GICMAPS(..)
+        gicmapsobj.plot_branch_gicflows(..)
+        and many more
+    
+    (b) Using pssarrays module
+        import pssarrays
+        gicmapsobj = pssarrays.GICMAPS(..)
+        gicmapsobj.plot_branch_gicflows(..)
+        and many more
+    
+    Plot GIC Transformer Thermal Analysis results on plots
+        from arrbox.gicthermal import GICTHERMAL
+        thermalobj = GICTHERMAL(..)
+        OR
+        import arrbox.gicthermal
+        thermalobj = arrbox.gicthermal.GICTHERMAL(..)
+        OR
+        import pssarrays
+        thermalobj = pssarrays.GICTHERMAL(..)
+    
+        thermalobj.plot_event_benchmark(..)
+        and many more
+    
+    Run IECS Fault Calculations and retrieve Fault Currents
+    (a) Using arrbox package
+        import arrbox.iecs
+        robj = arrbox.iecs.iecs_currents(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        robj = pssarrays.iecs_currents(..)
+    
+    PV Analysis Results Retrival
+    (a) Using arrbox package
+        import arrbox.pv_pp
+        pvobj = arrbox.pv_pp.PV_PP(pvfile)
+        pvobj.solution(..)
+        pvobj.solution_report(..)
+        pvobj.summary()
+        pvobj.summary_report(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        pssarrays.pv_solution(pvfile, ..)
+        pssarrays.pv_summary(pvfile, ..)
+        pssarrays.pv_summary_report(pvfile, ..)
+        pssarrays.pv_violations_report(pvfile, ..)
+    
+    QV Analysis Results Retrival
+    (a) Using arrbox package
+        import arrbox.qv_pp
+        qvobj = arrbox.qv_pp.QV_PP(qvfile)
+        qvobj.solution(..)
+        qvobj.solution_report(..)
+        qvobj.summary()
+        qvobj.summary_report(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        pssarrays.qv_solution(qvfile, ..)
+        pssarrays.qv_summary(qvfile, ..)
+        pssarrays.qv_summary_report(qvfile, ..)
+        pssarrays.qv_violations_report(qvfile, ..)
+    
+    Calculate Sensitity Factors and retrieve Results
+    (a) Using arrbox package
+        import arrbox.sensitivity_flow_to_mw
+        robj = arrbox.sensitivity_flow_to_mw.sensitivity_flow_to_mw(..)
+        ierr = arrbox.sensitivity_flow_to_mw.sensitivity_flow_to_mw_report(..)
+    
+    (b) Using pssarrays module
+        import pssarrays
+        robj = pssarrays.sensitivity_flow_to_mw(..)
+        ierr = pssarrays.sensitivity_flow_to_mw_report(..)
+
+FILE
+    c:\program files (x86)\pti\psse34\psspy39\pssarrays.py
+
+

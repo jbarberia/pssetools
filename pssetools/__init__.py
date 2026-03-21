@@ -177,8 +177,18 @@ def is_in_psse_gui():
 
 # Start of the program
 default_config = get_config()
-psspy.psseinit()
 if is_in_psse_gui():         
     from .gui import gui     
     gui()                    
-                             
+else:                             
+    # Suppress stdout/stderr during psseinit to hide the initialization banner
+    with open(os.devnull, 'w') as fnull:
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = fnull
+        sys.stderr = fnull
+        try:
+            psspy.psseinit()
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr

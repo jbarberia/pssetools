@@ -1,12 +1,14 @@
 """Initialization script for pssetools workspaces.
 
 This script creates the standard directory structure (lib, log, build, results)
-and copies template configuration and scripts from the package to the 
+and copies template configuration and scripts from the package to the
 current working directory.
 """
+
 from __future__ import print_function
 import os
 import shutil
+
 
 def run(**kwargs):
     # Crea carpetas de trabajo
@@ -28,17 +30,21 @@ def run(**kwargs):
 
     for filename in os.listdir(templates_dir):
         full_path = os.path.join(templates_dir, filename)
-        
+
         if os.path.isfile(full_path):
             if not os.path.exists(filename):
-                shutil.copy2(
-                    full_path, 
-                    filename
-                )
+                shutil.copy2(full_path, filename)
                 print("Copied template: {}".format(filename))
             else:
                 print("File already exists, skipping: {}".format(filename))
 
+        if os.path.isdir(full_path) and not filename.startswith("__"):
+            if not os.path.exists(filename):
+                shutil.copytree(full_path, filename)
+                print("Copied template: {}/".format(filename))
+            else:
+                print("Folder already exists, skipping: {}".format(filename))
+
+
 if __name__ == "__main__":
     run()
-

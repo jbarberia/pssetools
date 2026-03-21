@@ -37,7 +37,7 @@ if [ "$1" = "estatico" ]; then # ESTATICO --------------------------------------
     for sav in $savfiles
     do
         echo creando dfx para $sav ...
-        (python -m pssetools.dfx \
+        (python -m pssetools dfx \
         --sav $sav \
         --sub $sub \
         --mon $mon \
@@ -49,7 +49,7 @@ if [ "$1" = "estatico" ]; then # ESTATICO --------------------------------------
     for sav in $savfiles
     do
         echo corriendo acc para $sav ...
-        (python -m pssetools.acc \
+        (python -m pssetools acc \
         --sav $sav \
         --dfx $build/"${sav%.sav}".dfx \
         --acc $build/"${sav%.sav}".acc \
@@ -60,7 +60,7 @@ if [ "$1" = "estatico" ]; then # ESTATICO --------------------------------------
     for sav in $savfiles
     do
         echo exportando resultados de acc para $sav ...
-        (python -m pssetools.arrbox.contingency_pp \
+        (python -m pssetools arrbox.contingency_pp \
         --acc $build/"${sav%.sav}".acc \
         --frp $build/"${sav%.sav}".frp \
         --vrp $build/"${sav%.sav}".vrp) >> $log/"${sav%.sav}"_estatico.log &
@@ -76,7 +76,7 @@ elif [ "$1" = "cortocircuito" ]; then # CORTOCIRCUITO --------------------------
     for sav in $savfiles
     do
         echo corriendo cortocircuito para $sav ...
-        (python -m pssetools.ascc \
+        (python -m pssetools ascc \
         --report $build/"${sav%.sav}".scf \
         --sav $sav \
         --sub $sub ) > $log/"${sav%.sav}"_cortocircuito.log &
@@ -89,7 +89,7 @@ elif [ "$1" = "cortocircuito" ]; then # CORTOCIRCUITO --------------------------
 
 elif [ "$1" = "compila" ]; then # COMPILA --------------------------------------
     echo creando snapshot ...
-    (python -m pssetools.snp \
+    (python -m pssetools snp \
         --sav $savfiles \
         --snp $build/snapshot.snp \
         --dyr $dyr \
@@ -97,7 +97,7 @@ elif [ "$1" = "compila" ]; then # COMPILA --------------------------------------
         --ct $build/ct.flx ) | tee $log/compilacion.log        
 
     echo compilando ...
-    (python2 -m pssetools.dll \
+    (python2 -m pssetools dll \
         --sources $build/cc.flx $build/ct.flx $(ls lib/*.lib) \
         --dll lib/usrdll.dll) | tee -a $log/compilacion.log        
     read -p "Presione enter para finalizar ..."
@@ -107,7 +107,7 @@ elif [ "$1" = "dinamico" ]; then # DINAMICO ------------------------------------
     for sav in $savfiles
     do
         echo convirtiendo $sav a cnv ...
-        (python -m pssetools.cnv \
+        (python -m pssetools cnv \
         --sav $sav \
         --cnv $build/"${sav%.sav}".cnv \
         --py $convload) >> $log/"${sav%.sav}"_a_cnv.log &
@@ -121,7 +121,7 @@ elif [ "$1" = "dinamico" ]; then # DINAMICO ------------------------------------
         for py in $dinamico
         do
             echo lanzando simulacion $results/"${sav%.sav}"-"${py%.py}" ...
-            (python -u -m pssetools.dyn \
+            (python -u -m pssetools dyn \
                 --cnv $build/"${sav%.sav}".cnv \
                 --snp $build/snapshot.snp \
                 --out $results/"${sav%.sav}"-"${py%.py}"/"${sav%.sav}"-"${py%.py}".out \

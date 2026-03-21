@@ -2,7 +2,7 @@ from __future__ import print_function
 import argparse
 import sys
 import os
-from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, runner, setup
+from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, acc_unzip, runner, setup
 
 def app():
     """Main entry point for the pssetools CLI.
@@ -43,6 +43,12 @@ def app():
     acc_pp_p.add_argument("--vrp", type=str, help="Output voltage report (.vrp)")
     add_files_arg(acc_pp_p)
 
+    # acc-unzip
+    acc_zip_p = subparsers.add_parser("acc-unzip", parents=[parent_parser], help="ACCC Unzip tool")
+    acc_zip_p.add_argument("--zipfile", type=str, help="Input .zip file")
+    acc_zip_p.add_argument("--folder", type=str, help="Output folder")
+    add_files_arg(acc_zip_p)
+
     # ascc
     ascc_p = subparsers.add_parser("ascc", parents=[parent_parser], help="ASCC Short Circuit Analysis")
     ascc_p.add_argument("--sub", type=str, help="Input .sub file")
@@ -78,6 +84,7 @@ def app():
     snp_p.add_argument("--snp", type=str, help="Output .snp file")
     snp_p.add_argument("--cc", type=str, help="Input .flx (CONEC) file")
     snp_p.add_argument("--ct", type=str, help="Input .flx (CONET) file")
+    snp_p.add_argument("--idv", type=str, help="Response file with channels/options")
     snp_p.add_argument("--dyr", nargs="*", type=str, help="Input .dyr files")
     add_files_arg(snp_p)
 
@@ -108,7 +115,7 @@ def app():
 
     # Show subcommand help if no arguments provided (and no files)
     # Exclude booleans and 'command' itself
-    if not any([v for k, v in cmd_args.items() if k != 'command' and v is not None and v is not False and not (isinstance(v, list) and len(v) == 0)]) and not files:
+    if cmd != 'setup' and not any([v for k, v in cmd_args.items() if k != 'command' and v is not None and v is not False and not (isinstance(v, list) and len(v) == 0)]) and not files:
         # Find the subparser to print its help
         for action in parser._actions:
             if isinstance(action, argparse._SubParsersAction):
@@ -159,6 +166,7 @@ def app():
     modules = {
         "acc": acc,
         "acc-pp": acc_pp,
+        "acc-unzip": acc_unzip,
         "ascc": ascc,
         "cnv": cnv,
         "dfx": dfx,

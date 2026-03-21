@@ -12,6 +12,9 @@ This workspace is managed using `pssetools`. You are acting as a senior power sy
 - `results/`: Final reports and simulation output (.out).
 - `lib/`: User DLLs and libraries.
 
+## Documentation
+- `docs/`: Contains PSS/E API documentation (e.g., `psspy.txt`, `pssarrays.txt`, `dyntools.txt`). Refer to these files when building custom automation scripts.
+
 ## Core Workflows
 
 ### 1. Static Analysis (ACCC)
@@ -39,5 +42,12 @@ This workspace is managed using `pssetools`. You are acting as a senior power sy
 - **Validation:** When modifying `dyn_*.py` scripts, ensure `psspy.run` calls are sequenced correctly (fault, clear, recovery).
 - **Configuration:** Preferences for ACCC and ASCC should be modified in `config.cfg`.
 
+
 ## Automation
 The `script.sh` file provides a high-level wrapper. Prefer using the CLI `pssetools` directly for surgical operations or debugging, and `script.sh` for batch processing.
+
+
+## pssetools runner
+The python script shuld import psse34 before psspy and output the relevant information with the psspy.report function
+
+

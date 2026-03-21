@@ -60,13 +60,24 @@ if [ "$1" = "estatico" ]; then # ESTATICO --------------------------------------
     done
     wait
 
+
     for sav in $savfiles
     do
+        
         echo exportando resultados de acc para $sav ...
         (python -m pssetools acc-pp \
         --acc $build/"${sav%.sav}".acc \
         --frp $build/"${sav%.sav}".frp \
         --vrp $build/"${sav%.sav}".vrp) >> $log/"${sav%.sav}"_estatico.log &
+    done
+    wait
+
+    for sav in $savfiles
+    do
+        echo descomprimiendo casos $sav ...
+        (python -m pssetools acc-unzip \
+        --zipfile $build/"${sav%.sav}".zip \
+        --folder $results/"${sav%.sav}") >> $log/"${sav%.sav}"_estatico.log &
     done
     wait
 

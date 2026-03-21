@@ -8,7 +8,7 @@ _f = psspy.getdefaultreal()
 _s = psspy.getdefaultchar()
 
 @pss_activity
-def run(sav, snp, dyr, cc, ct, **kwargs):
+def run(sav, snp, dyr, cc, ct, idv=None, **kwargs):
     """Creates a PSS/E snapshot (.snp) by merging multiple dynamic files.
 
     Loads .dyr files, generates and merges CONEC/CONET source files (.flx),
@@ -20,6 +20,7 @@ def run(sav, snp, dyr, cc, ct, **kwargs):
         dyr: List of dynamic data files (.dyr).
         cc: Path for the CONEC (.flx) source file.
         ct: Path for the CONET (.flx) source file.
+        idv: Response file to allocate channels or aditional configuration.
         **kwargs: Additional arguments.
 
     Returns:
@@ -59,7 +60,13 @@ def run(sav, snp, dyr, cc, ct, **kwargs):
     with open(ct, "w") as conet: conet.writelines(ct_lines)
                 
     # guardo el snapshot pero antes ajusto opciones
-    # todo estas opciones deberian estar en otro lado
+    # TODO estas opciones deberian estar en otro lado
     psspy.dynamics_solution_param_2([_i,_i,_i,_i,_i,_i,_i,_i],[_f,_f, 0.002,_f,_f,_f,_f,_f])
+    
+    # corre un idv para guardar canales
+    if idv:
+        psspy.runrspnsfile(idv)
+    
+    # guarda archivo
     ierr = psspy.snap(sfile=snp)
     return ierr
