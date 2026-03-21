@@ -152,7 +152,7 @@ elif [ "$1" = "dinamico" ]; then # DINAMICO ------------------------------------
     read -p "Presione enter para finalizar ..."
 
 elif [ "$1" = "clean" ]; then # Limpiar todo
-    rm -rf $log $build $results
+    rm -rf $log/* $build/* $results/*
     rm -f lib/usrdll.dll
     read -p "Presione enter para finalizar ..."
 

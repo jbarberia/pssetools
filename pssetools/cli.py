@@ -92,6 +92,7 @@ def app():
     dll_p = subparsers.add_parser("dll", help="Build User DLL")
     dll_p.add_argument("--dll", type=str, help="Output .dll file")
     dll_p.add_argument("--sources", nargs="*", type=str, help="Source files")
+    dll_p.add_argument("--config", nargs="*", type=str, default=None, help="Source files")
     add_files_arg(dll_p)
 
     # runner

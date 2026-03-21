@@ -4,40 +4,11 @@ import os
 import sys
 import subprocess
 
-
-
 from . import psse34
+from . import get_config
 
 
-
-path_str = [
-    r"C:\Program Files (x86)\Intel\oneAPI\compiler\2024.1\bin32",
-    r"C:\Program Files (x86)\Intel\oneAPI\compiler\2024.1\bin",
-    r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\bin\Hostx86\x86",
-    r"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x86",
-    r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE",
-]
-
-lib_str = [
-    r"C:\Program Files (x86)\Intel\oneAPI\compiler\2024.1\lib32",
-    r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\lib\x86",
-    r"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x86",
-    r"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x86",
-]
-
-incl_str = [
-    r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include",
-    r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\atlmfc\include",
-    r"C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um",
-    r"C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\shared",
-]
-
-os.environ['PATH']    = ";".join(path_str)
-os.environ['LIB']     = ";".join(lib_str)
-os.environ['INCLUDE'] = ";".join(incl_str)
-
-
-def run(dll, sources, **kwargs):
+def run(dll, sources, config, **kwargs):
     """Compiles and creates a PSS/E user model DLL.
 
     Uses PSSE's environment manager and compiler tools to compile source
@@ -49,13 +20,21 @@ def run(dll, sources, **kwargs):
     Args:
         dll: Output path for the generated DLL.
         sources: List of source, object, and library files.
+        config: Configuration dictionary or path to configuration file.
         **kwargs: Additional arguments.
 
     Returns:
         The result of the DLL creation process.
     """
+
+    # configuracion del PATH
     subprocess.call(r"C:\Program Files (x86)\PTI\PSSE34\SET_PSSE_PATH.BAT")
     import psse_env_manager
+
+    config = get_config(config)
+    os.environ['PATH']    = config["DLL"]["PATH"].replace("\n", ";")
+    os.environ['LIB']     = config["DLL"]["LIB"].replace("\n", ";")
+    os.environ['INCLUDE'] = config["DLL"]["INCLUDE"].replace("\n", ";")
     
     # remueve archivos viejos
     if os.path.isfile(dll): os.remove(dll)
