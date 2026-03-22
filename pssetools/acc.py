@@ -13,15 +13,15 @@ def run(sav, acc, dfx, zipfile=None, config=None, **kwargs):
     loads the distribution factors, and generates results in .acc and .zip formats.
 
     Args:
-        sav: Input PSS/E case file (.sav).
-        acc: Output ACCC results file (.acc).
-        dfx: Input distribution factors file (.dfx).
-        zipfile: Optional output path for the zip report.
-        config: Optional path to a configuration file.
-        **kwargs: Additional arguments.
+        sav (str): Input PSS/E case file (.sav).
+        acc (str): Output ACCC results file (.acc).
+        dfx (str): Input distribution factors file (.dfx).
+        zipfile (str, optional): Output path for the zip report. Defaults to None.
+        config (str, optional): Path to a configuration file (.cfg). Defaults to None.
+        **kwargs: Additional keyword arguments.
 
     Returns:
-        The PSS/E activity return code.
+        int: The PSS/E activity return code.
     """
     config = get_config(config)
     

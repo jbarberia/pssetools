@@ -15,16 +15,19 @@ def run(sav, snp, dyr, cc, ct, idv=None, **kwargs):
     and configures dynamic simulation parameters before saving the snapshot.
 
     Args:
-        sav: Input PSS/E case file (.sav).
-        snp: Output snapshot file (.snp).
-        dyr: List of dynamic data files (.dyr).
-        cc: Path for the CONEC (.flx) source file.
-        ct: Path for the CONET (.flx) source file.
-        idv: Response file to allocate channels or aditional configuration.
-        **kwargs: Additional arguments.
+        sav (str): Input PSS/E case file (.sav).
+        snp (str): Output snapshot file (.snp).
+        dyr (list): List of dynamic data files (.dyr).
+        cc (str): Path for the CONEC (.flx) source file.
+        ct (str): Path for the CONET (.flx) source file.
+        idv (str, optional): Response file to allocate channels or additional configuration. Defaults to None.
+        **kwargs: Additional keyword arguments.
 
     Returns:
-        The PSS/E activity return code.
+        int: The PSS/E activity return code.
+
+    Raises:
+        ValueError: If no .dyr files are provided.
     """
     # genero el primer dyr
     if len(dyr) == 0:

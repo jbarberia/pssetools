@@ -11,7 +11,7 @@ def export_initial_conditions_suspect(filename):
     and overwrites the file with only that information if found.
 
     Args:
-        filename: The path to the progress output file to parse.
+        filename (str): The path to the progress output file to parse.
     """
     import re
     
@@ -34,16 +34,19 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     Intermediate results are saved as .cnv and .snp at T=0 and end of simulation.
 
     Args:
-        out: Path for the simulation output file (.out).
-        cnv: Input converted case file (.cnv).
-        snp: Input snapshot file (.snp).
-        dll: List of user DLLs to add to the simulation.
-        py: Path to the Python simulation script.
-        no_debug: If True, suppresses debug output on initialization failure.
-        **kwargs: Additional arguments.
+        out (str): Path for the simulation output file (.out).
+        cnv (str): Input converted case file (.cnv).
+        snp (str): Input snapshot file (.snp).
+        dll (list): List of user DLLs to add to the simulation.
+        py (str): Path to the Python simulation script.
+        no_debug (bool, optional): If True, suppresses debug output on initialization failure. Defaults to False.
+        **kwargs: Additional keyword arguments.
 
     Returns:
-        0 on success.
+        int: 0 on success.
+
+    Raises:
+        Exception: If loading snapshot or initialization fails.
     """
     debug = not no_debug
     dirname = os.path.dirname(out)

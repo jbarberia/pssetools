@@ -17,14 +17,14 @@ def run(sav, sub, config, report, **kwargs):
     three-phase and LG faults, and Thevenin impedances.
 
     Args:
-        sav: Input PSS/E case file (.sav).
-        sub: Input subsystem file (.sub).
-        config: Configuration dictionary or path to configuration file.
-        report: Output report file.
-        **kwargs: Additional arguments.
+        sav (str): Input PSS/E case file (.sav).
+        sub (str): Input subsystem file (.sub).
+        config (str|dict): Configuration dictionary or path to configuration file.
+        report (str): Output report file (.scf).
+        **kwargs: Additional keyword arguments.
 
     Returns:
-        0 on success.
+        int: 0 on success.
     """
     config = get_config(config)
 

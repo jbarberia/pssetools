@@ -15,16 +15,17 @@ def run(dll, sources, config, **kwargs):
     files (.flx, .f, .for, .f90) and link them with object/library files
     to generate a .dll for user models.
 
-    This function usually works on python 2.
-
     Args:
-        dll: Output path for the generated DLL.
-        sources: List of source, object, and library files.
-        config: Configuration dictionary or path to configuration file.
-        **kwargs: Additional arguments.
+        dll (str): Output path for the generated DLL.
+        sources (list): List of source, object, and library files.
+        config (str|dict): Configuration dictionary or path to configuration file.
+        **kwargs: Additional keyword arguments.
 
     Returns:
-        The result of the DLL creation process.
+        int: The result of the DLL creation process (0 on success).
+
+    Raises:
+        Exception: If DLL creation fails.
     """
 
     # configuracion del PATH

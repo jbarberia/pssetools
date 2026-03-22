@@ -11,15 +11,15 @@ def run(sav, sub, mon, con, dfx, **kwargs):
     to generate a distribution factors file (.dfx).
 
     Args:
-        sav: Input PSS/E case file (.sav).
-        sub: Input subsystem file (.sub).
-        mon: Input monitored elements file (.mon).
-        con: Input contingency file (.con).
-        dfx: Output distribution factors file (.dfx).
-        **kwargs: Additional arguments.
+        sav (str): Input PSS/E case file (.sav).
+        sub (str): Input subsystem file (.sub).
+        mon (str): Input monitored elements file (.mon).
+        con (str): Input contingency file (.con).
+        dfx (str): Output distribution factors file (.dfx).
+        **kwargs: Additional keyword arguments.
 
     Returns:
-        The PSS/E activity return code.
+        int: The PSS/E activity return code.
     """
     ierr = psspy.dfax_2([1,1,0], sub, mon, con, dfx)
     return ierr

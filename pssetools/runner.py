@@ -7,13 +7,13 @@ def run(sav, script, report, **kwargs):
     """Executes a custom Python script and redirects PSS/E report output.
 
     Args:
-        sav: Input PSS/E case file (.sav).
-        script: Path to the Python script to execute.
-        report: Path to the output report file.
-        **kwargs: Additional arguments.
+        sav (str): Input PSS/E case file (.sav).
+        script (str): Path to the Python script to execute.
+        report (str): Path to the output report file.
+        **kwargs: Additional keyword arguments.
 
     Returns:
-        The PSS/E activity return code.
+        int: The PSS/E activity return code.
     """
     ierr = psspy.t_report_output(2, report, [2, 0])
 

@@ -10,17 +10,17 @@ def run(acc, frp, vrp, config, **kwargs):
     """Post-processes ACCC contingency analysis results.
 
     Extracts flow and voltage data from an .acc file and saves them to
-    tab-separated reports.
+    tab-separated reports (.frp and .vrp).
 
     Args:
-        acc: Input ACCC results file (.acc).
-        frp: Output flow report file (.frp).
-        vrp: Output voltage report file (.vrp).
-        config: Configuration dictionary or path to configuration file.
-        **kwargs: Additional arguments.
+        acc (str): Input ACCC results file (.acc).
+        frp (str): Output flow report file (.frp).
+        vrp (str): Output voltage report file (.vrp).
+        config (str|dict): Configuration dictionary or path to configuration file.
+        **kwargs: Additional keyword arguments.
 
     Returns:
-        0 on success.
+        int: 0 on success.
     """
     config = get_config(config)    
     rate = config["ARRBOX"]["RATING"]

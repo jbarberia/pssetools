@@ -178,8 +178,9 @@ def is_in_psse_gui():
 # Start of the program
 default_config = get_config()
 if is_in_psse_gui():         
-    from .gui import gui     
-    gui()                    
+    from .gui import gui    
+    gui = gui()
+    gui.root.mainloop()
 else:                             
     # Suppress stdout/stderr during psseinit to hide the initialization banner
     with open(os.devnull, 'w') as fnull:
