@@ -1,29 +1,46 @@
-from . import argument_parser
+from __future__ import print_function
 from . import get_config
-from . import psse34
 from . import psspy
 from . import pssarrays
+from . import pss_activity
 from .parse_sub import parse_sub
 import os
 import sys
-import shutil
 
 
+@pss_activity
 def run(sav, sub, config, report, **kwargs):
+    """Runs ASCC short circuit analysis.
+
+    Parses the subsystem from a .sub file, executes short circuit
+    calculations, and generates a formatted report including
+    three-phase and LG faults, and Thevenin impedances.
+
+    Args:
+        sav (str): Input PSS/E case file (.sav).
+        sub (str): Input subsystem file (.sub).
+        config (str|dict): Configuration dictionary or path to configuration file.
+        report (str): Output report file (.scf).
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        int: 0 on success.
+    """
     config = get_config(config)
 
     # arma subsistema
     basename = ".".join(os.path.basename(sav).split(".")[:-1])
-    psspy.case(sav)
     subsystem = parse_sub(sub)
     buses = subsystem.get("CORTOCIRCUITO")
     if not buses:
-        sys.stderr.write("No hay subsistema CORTOCIRCUITO en archivo {}".format(sub))
-        exit(1)
+        raise ValueError("No hay subsistema CORTOCIRCUITO en archivo {}".format(sub))
+    
     psspy.bsys(0,0,[0.0,0.0],0,[],len(buses),buses,0,[],0,[])
 
     # corre cortocircuito
     psspy.short_circuit_warning(0)
+    psspy.short_circuit_units(0)
+    psspy.short_circuit_z_units(0)
     psspy.short_circuit_coordinates(0)
     psspy.short_circuit_z_coordinates(0)
     ascc_config = {k.lower(): v for (k, v) in config["ASCC"].items()}
@@ -42,7 +59,7 @@ def run(sav, sub, config, report, **kwargs):
     thevz0_r = {bus: rlst["thevzpu"][i]["z0"].real for i, bus in enumerate(buses)}
     thevz0_x = {bus: rlst["thevzpu"][i]["z0"].imag for i, bus in enumerate(buses)}
 
-    ierr = psspy.t_progress_output(2, report, [0, 0])    
+    ierr = psspy.t_progress_output(2, report, [0, 0])
     header = [
         "CASO",
         "BUS",
@@ -82,15 +99,5 @@ def run(sav, sub, config, report, **kwargs):
         line.append("{:.4f}".format(thevz0_x[bus]))
 
         psspy.progress(" " + "\t".join(line) + "\n")
-   
-   
-if __name__ == "__main__":
-    args_specs = {
-        "sav": {"type": str},
-        "sub": {"type": str},
-        "report": {"type": str}, 
-        "config": {"type": str},         
-    }    
-    args = argument_parser(args_specs)
-    run(**args)
     
+    return 0

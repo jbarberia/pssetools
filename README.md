@@ -1,20 +1,61 @@
-Este conjunto de funcionalidades permiten hacer un estudio eléctrico.
-Ver la carpeta example para ver un ejemplo de uso.
+# pssetools
 
-Los datos minimos son:
+**pssetools** is a command-line interface (CLI) and GUI utility for automating PSS/E (v34) activities, including ACCC, ASCC, dynamic simulations, and user model DLL compilation.
 
-- sav (casos del psse)
-- sub (para resolver casos estaticos)
-- mon (para resolver casos estaticos)
-- con (para resolver casos estaticos)
-- dyr, lib y dll (para simulaciones dinamicas)
-- py  (para controlar la simulacion dinamica)
+## Features
+- **ACCC Contingency Analysis:** Run and post-process contingency results.
+- **ASCC Short Circuit:** Automate short circuit reports.
+- **Dynamic Simulation:** Manage snapshots, converted cases, and time-domain runs.
+- **User DLLs:** Compile user models using PSSE environment tools.
+- **Configuration Wizard (GUI):** Generate subsystem, monitor, contingency, and channel files directly from PSS/E SLD diagrams.
 
-El flujo de trabajo sería el siguiente, para preparar los casos:
+## Prerequisites
+- **Python:** 2.7 (required for PSS/E 34 compatibility).
+- **PSS/E:** Version 34 must be installed and in the system PATH.
+- **Dependencies:** `pandas`, `Tkinter` (included in standard Python 2.7).
 
-1.  Se arman los casos bases *.sav
-1.  Se definen los sub, mon y con para las simulaciones estaticas
-1.  Se crea el snapshot y se compila los modelos
-1.  Se cargan los canales sobre el snapshot creado (este paso es manual - pero se puede guardar un idv)
-1.  Se realizan las simulaciones necesarias
+## Installation
+Clone the repository and install the package in develop mode:
+```bash
+git clone https://github.com/User/pssetools.git
+cd pssetools
+python setup.py develop
+```
 
+## Quick Start (CLI)
+
+### 1. ACCC Analysis
+```bash
+pssetools acc --sav case.sav --sub estudio.sub --mon estudio.mon --con estudio.con --acc results.acc
+```
+
+### 2. Short Circuit
+```bash
+pssetools ascc --sav case.sav --sub estudio.sub --report results.scf
+```
+
+### 3. Dynamic Simulation
+```bash
+pssetools dyn --cnv case.cnv --snp snapshot.snp --out results.out --py event.py
+```
+
+## GUI Configuration Wizard
+The GUI allows you to select elements in a PSS/E SLD (Slider) and automatically generate the necessary configuration files.
+
+**To launch the GUI:**
+```bash
+pssetools gui
+```
+- **Tabs:** Manage `.sub`, `.mon`, `.con`, and `.idv` (channels) separately.
+- **Shortcuts:**
+  - `Ctrl+S`: Save current tab.
+  - `Ctrl+Shift+S`: Save all tabs with a base name.
+  - `Ctrl+Tab`: Switch tabs.
+  - `Alt+1`: Generate content from selected SLD elements.
+
+## Configuration
+Activities are controlled via `config.cfg`. You can specify a custom config file using the `--config` flag.
+
+## Documentation
+- [Configuration Guide](docs/CONFIG_GUIDE.md)
+- [Contributing](CONTRIBUTING.md)

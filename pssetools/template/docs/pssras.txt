@@ -1,0 +1,801 @@
+Help on module pssras:
+
+NAME
+    pssras - [pssras.py]     09/13/17   Remedial Action Schemes (RAS) API for PSS(r)E.
+
+DESCRIPTION
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *                                                                     *
+     *  THIS PROGRAM AND ITS DOCUMENTATION ARE TRADE SECRETS OF POWER      *
+     *  TECHNOLOGIES, INC. (PTI).  THEY HAVE BEEN LEASED TO                *
+     *                    POWER TECHNOLOGIES INC.                          *
+     *  SUBJECT TO TERMS WHICH PROHIBIT  PTI  FROM DISCLOSING OR TRANS-    *
+     *  FERRING THE PROGRAM OR ITS DOCUMENTATION, WHETHER IN ITS ORIGINAL  *
+     *  OR MODIFIED FORM, TO A THIRD PARTY, OR FROM USING THE PROGRAM FOR  *
+     *  ANY PURPOSE OTHER THAN COMPUTATION RELATING TO  PTI'S  OWN SYSTEM. *
+     *  ANY SUCH TRANSFER OR USE BY  PTI  OR ITS EMPLOYEES WILL CONSTI-    *
+     *  TUTE A BREACH OF CONFIDENCE AND OF THE CONTRACT UNDER WHICH        *
+     *  RIGHTS OF USE HAVE BEEN GRANTED.                                   *
+     *                                                                     *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    
+    This file contains utilities for defining and runnning user-defined remedial
+    action schemes (RAS) in contingency analysis.
+
+CLASSES
+    builtins.Exception(builtins.BaseException)
+        RASError
+    builtins.object
+        PSSRAS
+    
+    class PSSRAS(builtins.object)
+     |  PSSRAS(name, condition=None, action=None, enabled=True, report=None)
+     |  
+     |  Represents a Remedial Action Scheme (RAS)
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, name, condition=None, action=None, enabled=True, report=None)
+     |      Creates a new RAS definition.
+     |      name: Name of RAS (must be unique)
+     |      condition: Condition function to be called when checking if this RAS
+     |      is triggered. This function may take arguments and must return a
+     |      boolena value (True or False)
+     |      action: Action function to be called when implementing this RAS
+     |      when triggered. This function may take arguments and may return
+     |      anything or None (returned value is not used).
+     |      enabled: True (armed) or False (disarmed)
+     |      report: (optional) custom report function for RAS reports and logs. If
+     |      provided, must be a function that takes no arguments and returns a
+     |      string.
+     |      return: New RAS object
+     |  
+     |  check_condition(self, *args, **kwargs)
+     |      Check the RAS condition and sets the triggered flag if the condition
+     |      is met.
+     |  
+     |  get_report(self)
+     |      Gets the user-defined custom report string for this RAS.
+     |      return: Custom report string if exists, otherwise None.
+     |  
+     |  implement_action(self, *args, **kwargs)
+     |      Implements the RAS function.
+     |  
+     |  reset(self)
+     |      Resets the state of this RAS (sets triggered and executed flags to
+     |      False).
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+    
+    class RASError(builtins.Exception)
+     |  RASError(errcode, function, text)
+     |  
+     |  Custom RAS Error. Includes psspy/pfcontrol function name, errcode, and
+     |  error string.
+     |  
+     |  Method resolution order:
+     |      RASError
+     |      builtins.Exception
+     |      builtins.BaseException
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, errcode, function, text)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Static methods inherited from builtins.Exception:
+     |  
+     |  __new__(*args, **kwargs) from builtins.type
+     |      Create and return a new object.  See help(type) for accurate signature.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from builtins.BaseException:
+     |  
+     |  __delattr__(self, name, /)
+     |      Implement delattr(self, name).
+     |  
+     |  __getattribute__(self, name, /)
+     |      Return getattr(self, name).
+     |  
+     |  __reduce__(...)
+     |      Helper for pickle.
+     |  
+     |  __repr__(self, /)
+     |      Return repr(self).
+     |  
+     |  __setattr__(self, name, value, /)
+     |      Implement setattr(self, name, value).
+     |  
+     |  __setstate__(...)
+     |  
+     |  __str__(self, /)
+     |      Return str(self).
+     |  
+     |  with_traceback(...)
+     |      Exception.with_traceback(tb) --
+     |      set self.__traceback__ to tb and return self.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from builtins.BaseException:
+     |  
+     |  __cause__
+     |      exception cause
+     |  
+     |  __context__
+     |      exception context
+     |  
+     |  __dict__
+     |  
+     |  __suppress_context__
+     |  
+     |  __traceback__
+     |  
+     |  args
+
+FUNCTIONS
+    area_gen_mvar(area)
+        Get total actual generation MVAR for area.
+        area: Area number
+        return: Total area actual generation MVAR
+    
+    area_gen_mw(area)
+        Get total actual generation MW for area.
+        area: Area number
+        return: Total area actual generation MW
+    
+    area_interchange_mvar(area)
+        Get actual net MVAR interchange for area.
+        area: Area number
+        return: Actual net MVAR interchange
+    
+    area_interchange_mw(area)
+        Get actual net MW interchange for area.
+        area: Area number
+        return: Actual net MW interchange
+    
+    area_load_mvar(area, bus_assignment=True)
+        Get total load MVAR for area.
+        area: Area number
+        bus_assignment: (optional) Use bus assignment (True/False). Default: False
+        return: Total area load MVAR
+    
+    area_load_mw(area, bus_assignment=True)
+        Get total load MW for area.
+        area: Area number
+        bus_assignment: (optional) Use bus assignment (True/False). Default: False
+        return: Total area load MW
+    
+    area_loss_mvar(area)
+        Get total MVAR losses for area.
+        area: Area number
+        return: Total area MVAR losses
+    
+    area_loss_mw(area)
+        Get total MW losses for area.
+        area: Area number
+        return: Total area MW losses
+    
+    branch_amps(ibus, jbus, ckt)
+        Get branch amp flow.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        return: signed amp flow (pu) (based on MW From bus --> To bus)
+    
+    branch_is_closed(ibus, jbus, ckt)
+        Determine if a branch is closed.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        return: True (closed) or False (open)
+    
+    branch_is_open(ibus, jbus, ckt)
+        Determine if a branch is open.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        return: True (open) or False (closed)
+    
+    branch_loading(ibus, jbus, ckt, rating=1, amps=False)
+        Get branch loading.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        rating: Rating to use (1-12)
+        amps: Use equivalent amps for the calculation
+        return: signed MVA flow (based on MW From bus --> To bus)
+    
+    branch_mva(ibus, jbus, ckt)
+        Get branch MVA flow.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        return: signed MVA flow (based on MW From bus --> To bus)
+    
+    branch_mvar(ibus, jbus, ckt)
+        Get branch mvar flow.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        return: signed MVAR flow (From bus --> To bus)
+    
+    branch_mw(ibus, jbus, ckt)
+        Get branch mw flow.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        return: signed MW flow (From bus --> To bus)
+    
+    branch_status(ibus, jbus, ckt)
+        Get a branch status.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        return: 0 (open) or 1 (closed)
+    
+    breaker_is_closed(subnum, inode, jnode, ckt)
+        Determine if a breaker is closed.
+        subnum: Sub number
+        inode: From node number
+        jnode: To node number
+        ckt: Circuit id
+        return: True (closed) or False (open)
+    
+    breaker_is_open(subnum, inode, jnode, ckt)
+        Determine if a breaker is open.
+        subnum: Sub number
+        inode: From node number
+        jnode: To node number
+        ckt: Circuit id
+        return: True (open) or False (closed)
+    
+    breaker_status(subnum, inode, jnode, ckt)
+        Get a breaker status.
+        subnum: Sub number
+        inode: From node number
+        jnode: To node number
+        ckt: Circuit id
+        return: 0 (open) or 1 (closed)
+    
+    bus_angle(ibus, degrees=False)
+        Get bus angle.
+        ibus: Bus number
+        degrees: (optional) True for degrees, False for radians. Default is radians
+        return: Angle in degrees or radians
+    
+    bus_is_disconnected(ibus)
+        Determine if a bus is disconnected.
+        ibus: Bus number
+        return: True (discommected) or False (connected)
+    
+    bus_kv(ibus)
+        Get bus actual kV voltage.
+        ibus: Bus number
+        return: Actual voltage magnitude (kV)
+    
+    bus_kvbase(ibus)
+        Get bus base kV.
+        ibus: Bus number
+        return: Base voltage (kV)
+    
+    bus_typecode(ibus)
+        Get bus typecode.
+        ibus: Bus number
+        return: Bus typecode (int)
+    
+    bus_voltage(ibus)
+        Get bus per unit voltage.
+        ibus: Bus number
+        return: Voltage magnitude (pu)
+    
+    bus_vrange_emergency(ibus)
+        Get bus emergency voltage magnitude limits.
+        ibus: Bus number
+        return: vlo, vhi (pu, pu)
+    
+    bus_vrange_normal(ibus)
+        Get bus normal voltage magnitude limits.
+        ibus: Bus number
+        return: vlo, vhi (pu, pu)
+    
+    clear_all_ras()
+        Delete all defined RAS schemes.
+    
+    clear_log()
+        Clears the log file (makes the file empty).
+    
+    close_branch(ibus, jbus, ckt)
+        Close a branch
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+    
+    connect_bus(ibus, tcode)
+        Connect a bus.
+        bus: Bus number of bus to connect
+        tcode: Type code setting for bus
+    
+    connect_bus_close_branch(ibus, jbus, ckt, tcode)
+        Close a branch after attempting to reset the type code of the type 4 bus
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        tcode: Type code setting for bus
+    
+    csv_report(contingency, iteration, ras_name, notes='')
+        Write a row to the CSV report.
+        contingency: Label of current contingency
+        iteration: System adjustment iteration limit
+        ras_name: Name of triggered RAS scheme
+    
+    dc_converter_amps(name, ibus)
+        Get DC line actual converter amps
+        name: DC line name
+        ibus: Converter bus number
+        return: Converter amps (pu)
+    
+    dc_converter_angled(name, ibus)
+        Get DC line angle
+        name: DC line name
+        ibus: Converter bus number
+        return: angle (degrees)
+    
+    dc_converter_kv(name, ibus)
+        Get DC line actual kV
+        name: DC line name
+        ibus: Converter bus number
+        return: actual kV
+    
+    dc_converter_mva(name, ibus)
+        Get DC line actual converter MVA
+        name: DC line name
+        ibus: Converter bus number
+        return: Converter MVA
+    
+    dc_converter_mvar(name, ibus)
+        Get DC line actual converter MVAR
+        name: DC line name
+        ibus: Converter bus number
+        return: Converter MVAR
+    
+    dc_converter_mw(name, ibus)
+        Get DC line actual converter MW
+        name: DC line name
+        ibus: Converter bus number
+        return: Converter MW
+    
+    dc_line_control_mode(name)
+        Get DC line control mode
+        name: DC line name
+        return: control mode (int)
+    
+    dc_line_current(name, ibus)
+        Get DC line current.
+        name: DC line name
+        ibus: Converter bus number
+        return: DC line current (pu)
+    
+    dc_line_setpoint(name, ibus)
+        Get DC line MW (DC) setpoint.
+        name: DC line name
+        ibus: Converter bus number
+        return: MW setpoint
+    
+    dc_nterm_firing_angle_status(name, ibus)
+        Get N-terminal DC line firing angle.
+        name: N-terminal DC line name
+        ibus: Converter bus number
+        return: -1: low; 0: regulating; 1: high.
+    
+    dc_nterm_tap_status(name, ibus)
+        Get N-terminal DC line tap status.
+        name: N-terminal DC line name
+        ibus: Converter bus number
+        return: -1: low; 0: regulating; 1: high; -2: locked
+    
+    define_ras(name, condition, action, enabled=True, report=None, description=None)
+        Defines a RAS.
+        name: The user-defined name of the scheme.
+        condition: The name of a defined function that will be called each
+        ras iteration to determine if this ras is triggered. This function should
+        return True for triggered or False otherwise.
+        action: The name of the function that will be called if this ras is
+        triggered.
+        enabled: (optional) True for enabled (armed) or False for disabled
+        (disarmed).
+        report: (optional) a function that returns a string for custom
+        reporting.
+        description: (optional) detailed description of the RAS.
+        returns: The Scheme object created.
+    
+    disable_ras(name)
+        Disable (disarm) a RAS.
+        name: RAS name (case-sensitive)
+        return: True if successful
+    
+    disconnect_bus(ibus)
+        Disconnect a bus.
+        bus: Bus number of bus to disconnect
+    
+    enable_ras(name)
+        Enable (arm) a RAS.
+        name: RAS name (case-sensitive)
+        return: True if successful
+    
+    enable_ras_csv_report(filepath=None, enable=True)
+        Enable a csv output report for programmatic post-processing.
+        filepath
+    
+    enable_ras_logging(filepath='raslog.txt', enable=True, overwrite=True)
+        Enable verbose RAS reporting.
+        filepath: Log filepath to which the log messages will be sent.
+        enabled: If True, verbose reporting will be sent to the PSSE report
+        stream during the set up and operation of the RAS system in contingency
+        anlaysis. If False, no reporting will be provided.
+        overwrite: If True, and existing file will be overwritten with each run of
+        the contingency engine.
+        returns: None
+    
+    enable_ras_psse_report(enable=True, to_progress=True)
+        Enable verbose RAS reporting.
+        enabled: If True, verbose reporting will be sent to the PSSE report
+        stream during the set up and operation of the RAS system in contingency
+        anlaysis. If False, no reporting will be provided.
+        returns: None
+    
+    fixed_shunt_mvar(ibus, shntid)
+        Get a fixed shunt nominal MVAR.
+        ibus: Bus number
+        shntid: Fixed shunt id
+        return: Nominal MVAR
+    
+    fixed_shunt_status(ibus, shntid)
+        Get a fixed shunt status.
+        ibus: Bus number
+        shntid: Fixed shunt id
+        return: 0 (out-of-service) or 1 (in-service)
+    
+    interchange_mvar(area_a, area_b)
+        Get actual MVAR interchange from area_a to area_b.
+        area_a: From area number
+        area_b: To area number
+        return: Signed actual MVAR interchange (area_a --> area_b)
+    
+    interchange_mw(area_a, area_b)
+        Get actual MW interchange from area_a to area_b.
+        area_a: From area number
+        area_b: To area number
+        return: Signed actual MW interchange (area_a --> area_b)
+    
+    load_mva(ibus, loadid, actual=False)
+        Get load MVA.
+        ibus: Bus number
+        loadid: Loadid
+        actual: (optional) True: actual, False: nominal (default False)
+        return: Load MVA
+    
+    load_mvar(ibus, loadid, actual=False)
+        Get load MVAR.
+        ibus: Bus number
+        loadid: Loadid
+        actual: (optional) True: actual, False: nominal (default False)
+        return: Load MVAR
+    
+    load_mw(ibus, loadid, actual=False)
+        Get load MW.
+        ibus: Bus number
+        loadid: Loadid
+        actual: (optional) True: actual, False: nominal (default False)
+        return: Load MW
+    
+    load_status(ibus, loadid)
+        Get the status of a load.
+        ibus: Bus number
+        loadid: Load id
+        return: 0 (out-of-service) or 1 (in-service)
+    
+    log(text, newline=True, timestamp=True)
+        Send a meesage to the log file. Has no effect if LOG flag is False.
+        To enable logging and to define the log file path, call the function
+        enable_ras_logging(path) in your RAS definition script.
+        text: The text to send to the log.
+        newline: (optional, default=True) add a newline at the end of the
+        message.
+        timestamp: (optional, default=False) add a timestamp at the
+        beginning of the message.
+        returns: None
+    
+    machine_mbase(ibus, machid)
+        Get machine MVA base.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: Base MVA
+    
+    machine_mva(ibus, machid)
+        Get machine actual MVA.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: Actual MVA
+    
+    machine_pgen(ibus, machid)
+        Get machine Pgen MW.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: Pgen (MW)
+    
+    machine_pmax(ibus, machid)
+        Get machine Pmax MW.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: Pmax (MW)
+    
+    machine_pmin(ibus, machid)
+        Get machine Pmin MW.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: Pmin (MW)
+    
+    machine_qgen(ibus, machid)
+        Get machine Qgen MVAR.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: Qgen (MVAR)
+    
+    machine_qmax(ibus, machid)
+        Get machine Qmax MVAR.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: Qmax (MVAR)
+    
+    machine_qmin(ibus, machid)
+        Get machine Qmin MVAR.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: Qmin (MVAR)
+    
+    machine_status(ibus, machid)
+        Get machine status.
+        ibus: Bus number of machine
+        machid: Machine id
+        return: 0 (out-of-service) or 1 (in service)
+    
+    open_branch(ibus, jbus, ckt)
+        Open a branch
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+    
+    plant_mva(ibus)
+        Get total MVA at plant.
+        ibus: Bus number
+        return: Total plant MVA
+    
+    plant_mvar(ibus)
+        Get total MVAR at plant.
+        ibus: Bus number
+        return: Total plant MVAR
+    
+    plant_mw(ibus)
+        Get total MW at plant.
+        ibus: Bus number
+        return: Total plant MW
+    
+    post_ca_soln_adj(conlabel, solved)
+        This is an entry point to the RAS action routine. This function
+        should be called by the user-defined pssuserpf.py module's post_ca_soln_adj
+        function like this:
+        
+        [in pssusrpf.py]
+        import pssras
+        ...
+        def post_ca_soln_adj(conlabel):
+            pssras.perform_actions(conlabel)
+    
+    post_ca_soln_eval(conlabel, solved)
+        This is the entry point to the RAS check routine. This function
+        should be called by the user-defined pssuserpf.py module's
+        post_ca_soln_eval function like this:
+        
+        [in pssusrpf.py]
+        import pssras
+        ...
+        def post_ca_soln_eval(conlabel):
+            solved = pssras.condition_check(conlabel)
+            return solved
+        
+        It is important that the pssuserpf function gets and returns the "solved"
+        flag. This is the "all clear" flag that is set to true if no RAS conditions
+        are found which require adjustments and a re-solve.
+    
+    pre_ca_solution(conlabel)
+        This is a delagate function for the pssuserpf pre_solution function
+        conlabel: Contingency label for the ctg that is about to be applied.
+        return: None
+    
+    ras_summaries(*ras_names)
+        Provides a string containing summaries of RAS definitions
+        ras_names: (optional) arg list of RAS definitions to include in the summary
+        return: Summary string
+    
+    report(text, newline=True, timestamp=False)
+        Send a meesage to the PSSE report stream. Has no effect if REPORT flag
+        is False. To enable reporting, call the function enable_ras_reporting() in
+        your RAS definition script.
+        text: The text to send to the report.
+        newline: (optional, default=True) add a newline at the end of the message.
+        timestamp: (optional, default=False) add a timestamp at the
+        beginning of the message.
+        returns: None
+    
+    report_and_log(text, newline=True, report_timestamp=False, log_timestamp=True)
+        Automatically sends a message to report and log streams.
+    
+    set_branch_status(ibus, jbus, ckt, status)
+        Set a branch's status.
+        ibus: From bus number
+        jbus: To bus number
+        ckt: Circuit id
+        status: Open (0 or False) or closed (1 or True)
+    
+    set_breaker_status(subnum, inode, jnode, ckt, status)
+        Set a breaker's status.
+        subnum: Substation number
+        inode: From node number
+        jnode: To node number
+        ckt: Switching device circuit id
+        status: Open (0 or False) or closed (1 or True)
+    
+    set_fixed_shunt_mvar(ibus, shntid, mvar)
+        Ras action wrapper function for setting the nomnal MVAR setpoint for a
+        fixed shunt.
+        ibus: Bus number
+        shntid: Shunt id (int or str)
+        mvar: MVAR to set
+    
+    set_fixed_shunt_status(ibus, shntid, status)
+        Set a fixed shunt's status.
+        ibus: Bus number
+        shntid: Shunt id (int or str)
+        status: Open (0 or False) or closed (1 or True)
+    
+    set_load_status(ibus, loadid, status)
+        Set a load status
+        ibus: Bus number of load
+        loadid: Load id (int or str)
+        status: Open (0 or False) or closed (1 or True)
+    
+    set_machine_mw(ibus, machid, mw)
+        Set machine MW
+        ibus: Bus number
+        machid: Machine id (int or str)
+        mw: MW setpoint for the machine (Pgen)
+    
+    set_machine_qmax(ibus, machid, mvar)
+        Set machine Qmax
+        ibus: Bus number
+        machid: Machine id (int or str)
+        mvar: machine min va setting (Qmax)
+    
+    set_machine_qmin(ibus, machid, mvar)
+        Set machine Qmin
+        ibus: Bus number
+        machid: Machine id (int or str)
+        mvar: machine min va setting (Qmin)
+    
+    set_machine_status(ibus, machid, status)
+        Set a machine status
+        ibus: Bus number of machine
+        machid: Machine id (int or str)
+        status: Open (0 or False) or Closed (1 or True)
+    
+    set_max_ras_iterations(n)
+        Set the max number of ras interations (system adjustment interations).
+    
+    set_ras_enabled(name, enabled)
+        Enable (arm) or disable (disarm) a RAS.
+        name: RAS name (case-sensitive)
+        enabled: True (arm) or False (disarm)
+        return: True if successful
+    
+    set_scheduled_voltage(ibus, vpu)
+        Set machine scheduled voltage
+        ibus: Bus number of machine
+        vpu: Voltage setpoint (pu)
+    
+    set_sw_shunt_qinit(ibus, qinit)
+        Ras action wrapper function for setting a switched shunt's Qinit.
+        ibus: Bus number of switched shunt
+        qinit: Qinit to set (MVAR)
+    
+    set_sw_shunt_status(ibus, status)
+        Set a switched shunt's status.
+        ibus: Bus number of switched shunt
+        status: Switched shunt status, Open (0 or False) or closed (1 or True)
+    
+    set_sw_shunt_vmax(ibus, vmax)
+        Ras action wrapper function for setting.
+        ibus: Bus number of switched shunt
+        vmax: Voltage limit high
+    
+    set_sw_shunt_vmin(ibus, vmin)
+        Ras action wrapper function for setting.
+        ibus: Bus number of switched shunt
+        vmin: Voltage limit Low
+    
+    set_vcsdc_mw(name, cnvbus, mw)
+        Set VCSDC MW Setpoint
+        name: VCSDC line name
+        cnvbus: Converter bus number
+        mw: MW setpoint
+    
+    set_vcsdc_qmax(name, cnvbus, mvar)
+        Set VCSDC Qmax
+        name: VCSDC line name
+        cnvbus: Converter bus number
+        mvar: Max MVAR
+    
+    set_vcsdc_qmin(name, cnvbus, mvar)
+        Set VCSDC Qmin
+        name: VCSDC line name
+        cnvbus: Converter bus number
+        mvar: Min MVAR
+    
+    sw_shunt_qinit(ibus)
+        Get a fixed shunt nominal Qinit.
+        ibus: Bus number
+        return: Nominal Qinit (MVAR)
+    
+    sw_shunt_status(ibus)
+        Get a switched shunt status.
+        ibus: Bus number
+        return: 0 (out-of-service) or 1 (in-service)
+    
+    sw_shunt_vmax(ibus)
+        Get a fixed shunt Vmax setting.
+        ibus: Bus number
+        return: Vmax (pu)
+    
+    sw_shunt_vmin(ibus)
+        Get a fixed shunt Vmin setting.
+        ibus: Bus number
+        return: Vmin (pu)
+    
+    trip_unit(ibus, machid)
+        Trip (set out-of-service) a generator unit
+        ibus: Bus number of machine
+        machid: Machine id (int or str)
+
+DATA
+    csv_enabled = False
+    csv_file = None
+    division = _Feature((2, 2, 0, 'alpha', 2), (3, 0, 0, 'alpha', 0), 1310...
+    iteration = 1
+    log_enabled = False
+    log_file = 'raslog.txt'
+    max_ras_interations = 100
+    print_function = _Feature((2, 6, 0, 'alpha', 2), (3, 0, 0, 'alpha', 0)...
+    report_enabled = False
+    report_to_progress = False
+    schemes = OrderedDict()
+    timestamp_format = '%Y-%m-%d %H:%M:%S'
+    use_iso_timestamp = True
+
+FILE
+    c:\program files (x86)\pti\psse34\psspy39\pssras.py
+
+

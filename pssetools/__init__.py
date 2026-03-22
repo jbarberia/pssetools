@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import psse34
@@ -6,14 +7,58 @@ import pssarrays
 import argparse
 import configparser
 from ast import literal_eval
+from functools import wraps
 
 
-def is_in_psse_gui():
-    return os.path.basename(sys.executable).lower() == "psse34.exe"
+def pss_activity(func):
+    """Decorator to standardize PSS/E activity execution.
+
+    Handles case loading (sav or cnv), error code verification, and
+    basic cleanup of output redirection on failure.
+
+    Args:
+        func: The activity function to wrap.
+
+    Returns:
+        The wrapped function.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        sav = kwargs.get('sav')
+        cnv = kwargs.get('cnv')
+        
+        if sav:
+            ierr = psspy.case(sav)
+            if ierr != 0:
+                raise Exception("Error loading case {}: {}".format(sav, ierr))
+        elif cnv:
+            ierr = psspy.case(cnv)
+            if ierr != 0:
+                raise Exception("Error loading case {}: {}".format(cnv, ierr))
+        
+        try:
+            result = func(*args, **kwargs)
+        except Exception as e:
+            # Ensure output is redirected back to screen on failure if it was redirected
+            psspy.t_progress_output(1, "", [0, 0])
+            raise e
+        
+        if isinstance(result, int) and result > 0:
+            raise Exception("Activity {} failed with error code: {}".format(func.__name__, result))
+        
+        return result
+    return wrapper
 
 
 def argument_parser(args_specs):
-    "crea un parser automatico para cada extension"
+    """Creates an automatic argument parser based on provided specifications.
+
+    Args:
+        args_specs: Dictionary defining arguments and their argparse specs.
+
+    Returns:
+        Parsed arguments as a dictionary.
+    """
     parser = argparse.ArgumentParser()
     for arg, specs in args_specs.items():
         parser.add_argument("--{}".format(arg), **specs)
@@ -41,6 +86,14 @@ def argument_parser(args_specs):
     
     
 def converter(in_str):
+    """Attempts to convert a string to its literal Python value.
+
+    Args:
+        in_str: The string to convert.
+
+    Returns:
+        The converted value or the original string if conversion fails.
+    """
     try:
         out = literal_eval(in_str)
     except Exception:
@@ -49,7 +102,14 @@ def converter(in_str):
 
 
 def config_parser(filename):
-    "parser de un .cfg a un diccionario con comentarios en linea"
+    """Parses a .cfg file into a dictionary, supporting inline comments.
+
+    Args:
+        filename: Path to the configuration file.
+
+    Returns:
+        A dictionary containing the parsed configuration sections and keys.
+    """
     config_file = configparser.ConfigParser(inline_comment_prefixes = ("#",))
     config_file.optionxform = lambda option: option
     config_file.read(filename)
@@ -63,7 +123,15 @@ def config_parser(filename):
 
 
 def deep_update(base, updates):
-    "Recursively update a dict of dicts."
+    """Recursively updates a dictionary of dictionaries.
+
+    Args:
+        base: The base dictionary to update.
+        updates: The dictionary containing updates.
+
+    Returns:
+        The updated base dictionary.
+    """
     for key, value in updates.items():
         if (
             key in base
@@ -77,7 +145,17 @@ def deep_update(base, updates):
 
 
 def get_config(filename=None):
-    "devuelve una configuracion o la configuracion por defecto"
+    """Retrieves the application configuration.
+
+    Loads the default configuration and merges it with an optional
+    user-provided configuration file.
+
+    Args:
+        filename: Optional path to a user configuration file.
+
+    Returns:
+        The merged configuration dictionary.
+    """
     default_cfg = os.path.join(os.path.dirname(__file__), "config.cfg")
     config = config_parser(default_cfg)
     
@@ -88,18 +166,30 @@ def get_config(filename=None):
     return config
 
 
-if is_in_psse_gui():    
-    from .gui import gui
-    gui()
+def is_in_psse_gui():                                               
+    """Checks if the script is running inside the PSS/E GUI.        
+                                                                    
+    Returns:                                                        
+        True if running in psse34.exe, False otherwise.             
+    """                                                             
+    return os.path.basename(sys.executable).lower() == "psse34.exe" 
 
-else:
-    old_stdout = sys.stdout
-    try:
-        sys.stdout = open(os.devnull, 'w')
-        ierr = psspy.psseinit()
-    finally:
-        sys.stdout.close()
-        sys.stdout = old_stdout
-    assert ierr == 0
 
+# Start of the program
 default_config = get_config()
+if is_in_psse_gui():         
+    from .gui import gui    
+    gui = gui()
+    gui.root.mainloop()
+else:                             
+    # Suppress stdout/stderr during psseinit to hide the initialization banner
+    with open(os.devnull, 'w') as fnull:
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = fnull
+        sys.stderr = fnull
+        try:
+            psspy.psseinit()
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr

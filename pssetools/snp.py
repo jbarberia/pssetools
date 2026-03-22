@@ -1,14 +1,34 @@
+from __future__ import print_function
 import os
 from . import psspy
-from . import argument_parser
+from . import pss_activity
 
 _i = psspy.getdefaultint()
 _f = psspy.getdefaultreal()
 _s = psspy.getdefaultchar()
 
-def run(sav, snp, dyr, cc, ct, **kwargs):
-    psspy.case(sav)
-    
+@pss_activity
+def run(sav, snp, dyr, cc, ct, idv=None, **kwargs):
+    """Creates a PSS/E snapshot (.snp) by merging multiple dynamic files.
+
+    Loads .dyr files, generates and merges CONEC/CONET source files (.flx),
+    and configures dynamic simulation parameters before saving the snapshot.
+
+    Args:
+        sav (str): Input PSS/E case file (.sav).
+        snp (str): Output snapshot file (.snp).
+        dyr (list): List of dynamic data files (.dyr).
+        cc (str): Path for the CONEC (.flx) source file.
+        ct (str): Path for the CONET (.flx) source file.
+        idv (str, optional): Response file to allocate channels or additional configuration. Defaults to None.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        int: The PSS/E activity return code.
+
+    Raises:
+        ValueError: If no .dyr files are provided.
+    """
     # genero el primer dyr
     if len(dyr) == 0:
         raise ValueError("No hay *.dyr a cargar")
@@ -20,8 +40,8 @@ def run(sav, snp, dyr, cc, ct, **kwargs):
     # genero los dyr restantes
     tmp_cc = cc.replace(".flx", "_tmp.flx")
     tmp_ct = ct.replace(".flx", "_tmp.flx")
-    for dyr in dyr[1:]:
-        psspy.dyre_add([_i,_i,_i,_i], dyr, tmp_cc, tmp_ct)
+    for dyr_file in dyr[1:]:
+        psspy.dyre_add([_i,_i,_i,_i], dyr_file, tmp_cc, tmp_ct)
         
         with open(tmp_cc, "r") as conec: tmp_cc_lines = conec.readlines()
         with open(tmp_ct, "r") as conet: tmp_ct_lines = conet.readlines()
@@ -36,26 +56,20 @@ def run(sav, snp, dyr, cc, ct, **kwargs):
                 ct_lines.insert(-6, line)
                     
         # limpia los archivos temporales    
-        os.remove(tmp_cc)
-        os.remove(tmp_ct)
+        if os.path.exists(tmp_cc): os.remove(tmp_cc)
+        if os.path.exists(tmp_ct): os.remove(tmp_ct)
         
     with open(cc, "w") as conec: conec.writelines(cc_lines)
     with open(ct, "w") as conet: conet.writelines(ct_lines)
                 
     # guardo el snapshot pero antes ajusto opciones
-    # todo estas opciones deberian estar en otro lado
+    # TODO estas opciones deberian estar en otro lado
     psspy.dynamics_solution_param_2([_i,_i,_i,_i,_i,_i,_i,_i],[_f,_f, 0.002,_f,_f,_f,_f,_f])
+    
+    # corre un idv para guardar canales
+    if idv:
+        psspy.runrspnsfile(idv)
+    
+    # guarda archivo
     ierr = psspy.snap(sfile=snp)
-    assert ierr == 0
-        
-
-if __name__ == "__main__":
-    args_specs = {
-        "sav": {"type": str},
-        "snp": {"type": str}, 
-        "cc":  {"type": str}, 
-        "ct":  {"type": str}, 
-        "dyr": {"nargs": "*", "type": str}
-    }
-    args = argument_parser(args_specs)
-    run(**args)
+    return ierr
