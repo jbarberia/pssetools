@@ -35,7 +35,7 @@ def run(zipfile, folder, **kwargs):
     contingencies = _get_contingencies(working_folder)
 
     psspy.case(os.path.join(working_folder, "InitCase.sav"))
-    psspy.save(os.path.join(folder, "BASE CASE.sav"))
+    psspy.save(os.path.join(folder, "BASE_CASE.sav"))
 
     for colabel, coid in contingencies:
         psspy.case(os.path.join(working_folder, "InitCase.sav"))
