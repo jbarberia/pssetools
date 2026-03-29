@@ -73,7 +73,7 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
         
     psspy.save(os.path.join(dirname, basename + "_T0.cnv"))
     psspy.snap(sfile=os.path.join(dirname, basename + "_T0.snp"))
-    sys.stderr.write("{} incializado en T=0\n".format(basename))
+    sys.stdout.write("{} incializado en T=0\n".format(basename))
 
     # corre simulacion
     with open(py) as f:
@@ -86,5 +86,5 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     psspy.snap(sfile=os.path.join(dirname, basename + "_T{:.0f}.snp".format(time)))
     
     psspy.progress("\n FIN SIMULACION\n")
-    sys.stderr.write("{} finalizado en T={:.0f}\n".format(basename, time))
+    sys.stdout.write("{} finalizado en T={:.0f}\n".format(basename, time))
     return 0
