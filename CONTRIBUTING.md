@@ -14,10 +14,29 @@ Thank you for your interest in improving **pssetools**! We welcome contributions
 
 ## Adding a New Activity
 To add a new PSS/E activity (e.g., OPF, GIC):
-1. Create a new module in `pssetools/` (e.g., `pssetools/opf.py`).
-2. Implement a `run` function decorated with `@pss_activity`.
-3. Add the command to the CLI parser in `pssetools/cli.py`.
-4. Add default configuration parameters to `pssetools/config.cfg` if needed.
+
+1. **Create a new module:** in `pssetools/` (e.g., `pssetools/opf.py`).
+2. **Use the `@pss_activity` decorator:** 
+   The `pssetools.pss_activity` decorator handles common tasks:
+   - Automatically loads the `.sav` or `.cnv` case before the function runs.
+   - Catches exceptions and ensures PSS/E output is redirected back to the screen if it was captured.
+   - Verifies the return code of the activity and raises an exception on failure (if the return value is a non-zero integer).
+
+   ```python
+   from pssetools import pss_activity
+   import psspy
+
+   @pss_activity
+   def run(sav, output_file, **kwargs):
+       ierr = psspy.my_psse_activity(output_file)
+       return ierr
+   ```
+
+3. **Register in CLI:** Add the command to the parser in `pssetools/cli.py`.
+4. **Update Config:** Add default configuration parameters to `pssetools/config.cfg` if the activity requires specific settings.
+
+## Configuration Handling
+Always use `pssetools.get_config()` to retrieve settings. This ensures user-provided configuration files (via `--config`) are correctly merged with system defaults.
 
 ## Reporting Issues
 Please use the GitHub Issue tracker to report bugs or request new features.

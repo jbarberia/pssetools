@@ -1,4 +1,4 @@
-
+.PHONY clean install build
 
 clean:
 	rm */*.pyc
@@ -8,4 +8,4 @@ install:
 	python2 -m pip install .
 
 build:
-	python -m build
+	python -m build .
