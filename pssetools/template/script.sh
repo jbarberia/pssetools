@@ -1,3 +1,9 @@
+# pssetools
+# Copyright (C) 2026 Barberia Juan Luis
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License v3.0 or later.
+# See the LICENSE file for details.
 
 savfiles=$(ls *.sav)
 sub=estudio.sub
