@@ -2,7 +2,7 @@ from __future__ import print_function
 import argparse
 import sys
 import os
-from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, acc_unzip, runner, setup
+from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, acc_unzip, runner, setup, sim_runner
 
 def app():
     """Main entry point for the pssetools CLI.
@@ -104,6 +104,15 @@ def app():
     # setup
     setup_p = subparsers.add_parser("setup", help="Initialize workspace with templates and folders")
 
+    # sim-runner (simulation runner with YAML config)
+    simrunner_p = subparsers.add_parser("sim-runner", help="Execute simulations from YAML/JSON configuration")
+    simrunner_p.add_argument("--config", type=str, default="config.yaml", help="Configuration file (default: config.yaml)")
+    simrunner_p.add_argument("--validate", action="store_true", help="Validate configuration without executing")
+    simrunner_p.add_argument("--interactive", action="store_true", help="Ask for confirmation before each simulation")
+    simrunner_p.add_argument("--continue-on-error", action="store_true", help="Continue even if simulation fails")
+    simrunner_p.add_argument("--dry-run", action="store_true", help="Show commands but do not execute")
+    simrunner_p.add_argument("--summary", action="store_true", help="Show configuration summary and exit")
+
     # Show help if no subcommand is provided
     if len(sys.argv) == 1:
         parser.print_help()
@@ -175,6 +184,7 @@ def app():
         "snp": snp,
         "dll": dll,
         "runner": runner,
+        "sim-runner": sim_runner,
         "setup": setup
     }
     

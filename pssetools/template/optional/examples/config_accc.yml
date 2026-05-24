@@ -1,0 +1,34 @@
+# PSS/E Simulation Configuration - ACCC Analysis Example
+# This configuration file defines a batch of ACCC (contingency analysis) simulations.
+# Compatible with: pssetools sim-runner --config this_file.yml
+
+workspace:
+  base_dir: "."
+
+simulations:
+  - name: "ACCC_Caso_Base"
+    type: "accc"
+    case: "casos/caso_base.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_base.dfx"
+      acc: "build/caso_base.acc"
+      zipfile: "build/caso_base.zip"
+
+  - name: "ACCC_Caso_Punta"
+    type: "accc"
+    case: "casos/caso_punta.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_punta.dfx"
+      acc: "build/caso_punta.acc"
+      zipfile: "build/caso_punta.zip"
+
+execution:
+  continue_on_error: false
+  logging: "normal"
+  interactive: false
