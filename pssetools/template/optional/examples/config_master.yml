@@ -1,0 +1,167 @@
+# Configuración Unificada - pssetools
+# ====================================
+# 
+# Este archivo define TODOS los tipos de simulaciones posibles en un solo lugar
+# Descomentar los estudios que quieras ejecutar
+#
+# Uso:
+#   - Validar: pssetools sim-runner --config config.yml --validate
+#   - Ejecutar: pssetools sim-runner --config config.yml
+#   - Preview: pssetools sim-runner --config config.yml --dry-run
+
+workspace:
+  base_dir: "."
+
+simulations:
+  # ====== ESTUDIOS ESTÁTICOS (ACCC y ASCC) ======
+  
+  # ACCC: Contingency Analysis (Análisis de Contingencias)
+  # Mantiene el punto de operación, analiza pérdida de elementos
+  - name: "ACCC_CasoBase"
+    type: "accc"
+    case: "casos/caso_base.sav"
+    options:
+      sub: "estudio.sub"        # Subsistema a analizar
+      mon: "estudio.mon"        # Puntos de monitoreo
+      con: "estudio.con"        # Lista de contingencias
+      dfx: "build/caso_base.dfx"       # Factores de distribución
+      acc: "build/caso_base.acc"       # Resultados ACCC
+      zipfile: "build/caso_base.zip"   # Reporte comprimido
+
+  # ASCC: Short Circuit Analysis (Análisis de Cortocircuito)
+  # Calcula corrientes de falta en diferentes buses
+  - name: "ASCC_CasoBase"
+    type: "ascc"
+    case: "casos/caso_base.sav"
+    options:
+      sub: "estudio.sub"        # Subsistema
+      asc: "build/caso_base.asc"       # Resultados ASCC
+      dfx: "build/caso_base_ascc.dfx"  # Factores (opcional)
+
+  # Descomentar para agregar más casos:
+  #
+  # - name: "ACCC_CasoPunta"
+  #   type: "accc"
+  #   case: "casos/caso_punta.sav"
+  #   options:
+  #     sub: "estudio.sub"
+  #     mon: "estudio.mon"
+  #     con: "estudio.con"
+  #     acc: "build/caso_punta.acc"
+  #
+  # - name: "ASCC_CasoPunta"
+  #   type: "ascc"
+  #   case: "casos/caso_punta.sav"
+  #   options:
+  #     sub: "estudio.sub"
+  #     asc: "build/caso_punta.asc"
+
+  # ====== SIMULACIÓN DINÁMICA ======
+  # Requiere: lib/convload.py, estudio.dyr, estudio.idv
+
+  # CNV: Conversión de caso (Case Conversion)
+  # Prepara el caso para simulación dinámica, aplicando modelos custom
+  # - name: "CNV_DynamicCase"
+  #   type: "cnv"
+  #   case: "casos/caso_base.sav"
+  #   options:
+  #     cnv: "build/caso_base.cnv"
+  #     py: "lib/convload.py"
+
+  # SNP: Construcción de snapshot (Snapshot Build)
+  # Crea el archivo snapshot para simulación transient stability
+  # - name: "SNP_TransientSnapshot"
+  #   type: "snp"
+  #   case: "casos/caso_base.sav"
+  #   options:
+  #     snp: "build/snapshot.snp"
+  #     dyr: "estudio.dyr"
+  #     idv: "estudio.idv"
+  #     cc: "build/cc.flx"      # (opcional)
+  #     ct: "build/ct.flx"      # (opcional)
+
+  # DYN: Simulación dinámica (Dynamic Simulation)
+  # Ejecuta simulación transient stability con snapshot
+  # - name: "DYN_TransientStability"
+  #   type: "dyn"
+  #   case: "casos/caso_base.sav"
+  #   options:
+  #     cnv: "build/caso_base.cnv"
+  #     snp: "build/snapshot.snp"
+  #     out: "build/resultado_dyn.out"
+  #     outx: "build/resultado_dyn.outx"
+  #     py: "lib/dyn_1ph.py"    # Script de evento (opcional)
+
+  # ====== OTROS TIPOS DE ANÁLISIS ======
+  
+  # DFX: Construcción de factores de distribución (solo si no se incluye en ACCC)
+  # - name: "DFX_BuildFactors"
+  #   type: "dfx"
+  #   case: "casos/caso_base.sav"
+  #   options:
+  #     sub: "estudio.sub"
+  #     mon: "estudio.mon"
+  #     con: "estudio.con"
+  #     dfx: "build/custom.dfx"
+
+execution:
+  # Número de procesos en paralelo
+  # 1 = secuencial (por defecto)
+  # 2-4 = paralelo típico (laptops/PCs)
+  # 8+ = alto paralelismo (servidores)
+  parallel: 1
+  
+  # Continuar si falla una simulación
+  continue_on_error: false
+  
+  # Nivel de logging: "minimal", "normal", "verbose"
+  logging: "normal"
+  
+  # Modo interactivo (preguntar antes de cada simulación)
+  interactive: false
+
+# ============================================================
+# GUÍA RÁPIDA DE USO
+# ============================================================
+#
+# 1. DESCOMENTAR ESTUDIOS:
+#    - Localiza el estudio que quieres ejecutar
+#    - Elimina el "#" del inicio de la línea
+#    - Indenta correctamente (espacio después de "#")
+#
+# 2. EDITAR RUTAS:
+#    - Cambiar "casos/caso_base.sav" → Tu archivo real
+#    - Cambiar "estudio.sub" → Tu archivo real
+#    - Las carpetas (build/, results/, lib/) se crean automáticamente
+#
+# 3. VALIDAR:
+#    pssetools sim-runner --config config.yml --validate
+#
+# 4. EJECUTAR:
+#    pssetools sim-runner --config config.yml
+#
+# 5. PARALELO (ejecutar varios al mismo tiempo):
+#    Cambiar: parallel: 1 → parallel: 2 (o 4, 8, etc.)
+#    pssetools sim-runner --config config.yml
+#
+# ============================================================
+# ARCHIVOS REQUERIDOS EN CARPETA RAÍZ
+# ============================================================
+#
+# config.cfg       - Configuración general (PSS/E, DLL compiler)
+# estudio.sub      - Subsistema (buses/ramas a analizar)
+# estudio.mon      - Monitor points (buses a monitorear)
+# estudio.con      - Contingencias (elementos a desconectar)
+# estudio.idv      - Channel list (para dinámico)
+# estudio.dyr      - Dynamic data file (para dinámico)
+#
+# ============================================================
+# SCRIPTS EN lib/
+# ============================================================
+#
+# convload.py      - Carga custom de casos dinámicos
+# dyn_1ph.py       - Ejemplo: falta monofásica
+# dyn_3ph.py       - Ejemplo: falta trifásica
+# *.dll, *.lib     - Modelos de usuario compilados
+#
+# ============================================================

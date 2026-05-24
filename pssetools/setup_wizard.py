@@ -78,32 +78,89 @@ def crear_carpetas(base_dir):
 
 
 def crear_templates_basicos(base_dir, tipos_analisis):
-    """Crea templates básicos en carpeta templates/."""
+    """Crea archivo de configuración único (NO templates ACCC.* innecesarios)."""
     templates_dir = os.path.join(base_dir, 'templates')
     
-    imprimir_info("Generando templates básicos...")
+    # Solo crear config.yml unificado - SIN templates genéricos ACCC.sub, etc
+    imprimir_info("Generando configuración unificada...")
     
-    # Templates PSS/E
-    templates_psse = {
-        'accc.sub': 'SUBSYSTEM ESTUDIO\n  BUS 1 AREA 1\n  BUS 2 AREA 1\n  BUS 3 AREA 1\nENDSUB\n',
-        'accc.mon': '; Puntos de monitoreo\n1\n2\n3\n',
-        'accc.con': '; Contingencias\nFAULT - BUS  1\nFAULT - LINE  1  2\n',
-        'accc.idv': '; Definición de canales\n1 ,BUS VOLTAGE , 1\n2 ,BUS VOLTAGE , 2\n'
-    }
+    config_content = '''# Configuración Unificada - pssetools
+# Descomentar los estudios que quieras ejecutar
+# Uso: pssetools sim-runner --config config.yml
+
+workspace:
+  base_dir: "."
+
+simulations:
+  # ===== ESTUDIOS ESTÁTICOS =====
+  # ACCC (Contingency Analysis)
+  - name: "ACCC_CasoBase"
+    type: "accc"
+    case: "casos/caso_base.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_base.dfx"
+      acc: "build/caso_base.acc"
+      zipfile: "build/caso_base.zip"
+
+  # ASCC (Short Circuit)
+  - name: "ASCC_CasoBase"
+    type: "ascc"
+    case: "casos/caso_base.sav"
+    options:
+      sub: "estudio.sub"
+      asc: "build/caso_base.asc"
+      dfx: "build/caso_base_ascc.dfx"
+
+  # ===== SIMULACIÓN DINÁMICA =====
+  # Conversión de caso (conversion)
+  - name: "CNV_Snapshot"
+    type: "cnv"
+    case: "casos/caso_base.sav"
+    options:
+      cnv: "build/caso_base.cnv"
+      py: "lib/convload.py"
+
+  # Snapshot para simulación dinámica
+  - name: "SNP_Build"
+    type: "snp"
+    case: "casos/caso_base.sav"
+    options:
+      snp: "build/snapshot.snp"
+      dyr: "estudio.dyr"
+      idv: "estudio.idv"
+
+  # Simulación dinámica transient stability
+  - name: "DYN_Transient"
+    type: "dyn"
+    case: "casos/caso_base.sav"
+    options:
+      cnv: "build/caso_base.cnv"
+      snp: "build/snapshot.snp"
+      out: "build/resultado_dyn.out"
+      outx: "build/resultado_dyn.outx"
+
+execution:
+  # Ejecutar en paralelo (1=secuencial, 2-4=paralelo típico)
+  parallel: 1
+  continue_on_error: false
+  logging: "normal"
+  interactive: false
+
+# INSTRUCCIONES DE USO:
+# 1. Descomentar los estudios que quieras ejecutar
+# 2. Editar rutas de archivos (.sav, .sub, .mon, .con, etc.)
+# 3. Validar: pssetools sim-runner --config config.yml --validate
+# 4. Ejecutar: pssetools sim-runner --config config.yml
+'''
     
-    for nombre, contenido in templates_psse.items():
-        ruta = os.path.join(templates_dir, nombre)
-        if not os.path.exists(ruta):
-            with open(ruta, 'w', encoding='utf-8') as f:
-                f.write(contenido)
-            imprimir_exito("Template: {}".format(nombre))
-    
-    if 'ACCC' in tipos_analisis:
-        config = 'workspace:\n  base_dir: "."\nsimulationes:\n  - name: "ACCC_Base"\n    type: "accc"\n    case: "casos/caso.sav"\n    options:\n      sub: "templates/accc.sub"\n      mon: "templates/accc.mon"\n      con: "templates/accc.con"\n      dfx: "build/accc.dfx"\nexecution:\n  continue_on_error: false\n  logging: "normal"\n'
-        ruta = os.path.join(templates_dir, 'config_accc.yml')
-        with open(ruta, 'w', encoding='utf-8') as f:
-            f.write(config)
-        imprimir_exito("Configuración: config_accc.yml")
+    ruta = os.path.join(templates_dir, 'config.yml')
+    with open(ruta, 'w', encoding='utf-8') as f:
+        f.write(config_content)
+    imprimir_exito("Configuración única: config.yml")
+
 
 
 def copiar_archivos_esenciales(base_dir, template_base):
@@ -122,64 +179,61 @@ def copiar_archivos_esenciales(base_dir, template_base):
 
 
 def copiar_ejemplos(base_dir, template_base):
-    """Copia ejemplos Python."""
+    """Copia ejemplos a lib/ - organizados por tipo de simulación."""
     ejemplos_dir = os.path.join(template_base, 'optional', 'examples')
     
     if not os.path.exists(ejemplos_dir):
         return
     
-    if pregunta_si_no("¿Incluir ejemplos Python?"):
+    if pregunta_si_no("¿Incluir scripts de ejemplo (Dynamic)?"):
         lib_dir = os.path.join(base_dir, 'lib')
         
-        for archivo in os.listdir(ejemplos_dir):
-            if archivo.endswith('.py'):
-                src = os.path.join(ejemplos_dir, archivo)
-                dst = os.path.join(lib_dir, archivo)
-                if os.path.exists(src):
-                    shutil.copy2(src, dst)
-                    imprimir_exito("Ejemplo: {}".format(archivo))
+        # Scripts que van a lib/ (dinámico + convload.py)
+        scripts_lib = ['convload.py', 'dyn_1ph.py', 'dyn_3ph.py']
+        
+        for archivo in scripts_lib:
+            src = os.path.join(ejemplos_dir, archivo)
+            dst = os.path.join(lib_dir, archivo)
+            if os.path.exists(src):
+                shutil.copy2(src, dst)
+                imprimir_exito("Script: {}".format(archivo))
 
 
 def crear_proyecto_nuevo(base_dir, template_base):
     """Crea un proyecto nuevo."""
     imprimir_encabezado("CREAR PROYECTO NUEVO")
     
-    opciones_analisis = [
-        ('1', 'ACCC (Análisis de Contingencias)'),
-        ('2', 'ASCC (Análisis de Cortocircuito)'),
-        ('3', 'Simulación Dinámica'),
-        ('4', 'Todos'),
-        ('5', 'Solo esenciales')
-    ]
-    
-    seleccion = pregunta_opcion("¿Qué análisis ejecutarás?", opciones_analisis)
-    
-    tipos_analisis = set()
-    if seleccion in ('1', '4'):
-        tipos_analisis.add('ACCC')
-    if seleccion in ('2', '4'):
-        tipos_analisis.add('ASCC')
-    if seleccion in ('3', '4'):
-        tipos_analisis.add('DYN')
+    # Ya no preguntamos qué análisis - dejamos que el usuario comente/descomente en config.yml
+    imprimir_info("Se creará estructura con configuración única (config.yml)")
+    imprimir_info("El usuario puede descomentar los estudios que desee ejecutar")
     
     imprimir_info("Creando estructura...")
     crear_carpetas(base_dir)
     copiar_archivos_esenciales(base_dir, template_base)
-    crear_templates_basicos(base_dir, tipos_analisis)
+    crear_templates_basicos(base_dir, {'ACCC', 'ASCC', 'DYN'})
     copiar_ejemplos(base_dir, template_base)
     
     imprimir_encabezado("PROYECTO CREADO!")
     print("Ubicación: {}\n".format(base_dir))
-    print("Carpetas:")
-    print("  lib/        - Scripts Python")
-    print("  templates/  - Configuraciones YAML")
-    print("  build/      - Salidas (.dfx, .acc)")
-    print("  results/    - Reportes")
+    print("Estructura de carpetas:")
+    print("  lib/        - Scripts Python (convload.py, dyn_*.py) y DLLs de modelos")
+    print("  templates/  - config.yml (configuración única)")
+    print("  build/      - Archivos intermedios (.dfx, .cnv, .snp)")
+    print("  results/    - Reportes y resultados (.acc, .asc, .out)")
     print("  casos/      - Archivos .sav\n")
+    print("Archivos principales:")
+    print("  config.cfg       - Configuración general")
+    print("  estudio.sub      - Subsistema")
+    print("  estudio.mon      - Puntos de monitoreo")
+    print("  estudio.con      - Contingencias")
+    print("  estudio.idv      - Canales dinámicos")
+    print("  templates/config.yml - CONFIGURACIÓN UNIFICADA\n")
     print("Próximos pasos:")
     print("  1. Coloca archivos .sav en: casos/")
-    print("  2. Edita: templates/config_accc.yml")
-    print("  3. Ejecuta: pssetools sim-runner --config templates/config_accc.yml")
+    print("  2. Edita archivos .sub/.mon/.con según tu estudio")
+    print("  3. Descomentar estudios en: templates/config.yml")
+    print("  4. Validar: pssetools sim-runner --config templates/config.yml --validate")
+    print("  5. Ejecutar: pssetools sim-runner --config templates/config.yml")
 
 
 def modificar_proyecto_existente(base_dir, template_base):
@@ -187,8 +241,8 @@ def modificar_proyecto_existente(base_dir, template_base):
     imprimir_encabezado("MODIFICAR PROYECTO")
     
     opciones = [
-        ('1', 'Regenerar templates'),
-        ('2', 'Copiar ejemplos'),
+        ('1', 'Regenerar config.yml'),
+        ('2', 'Copiar scripts (Dynamic)'),
         ('3', 'Volver')
     ]
     
@@ -196,9 +250,10 @@ def modificar_proyecto_existente(base_dir, template_base):
     
     if seleccion == '1':
         crear_templates_basicos(base_dir, {'ACCC', 'ASCC', 'DYN'})
-        imprimir_exito("Templates regenerados")
+        imprimir_exito("config.yml regenerado (descomentar estudios según necesidad)")
     elif seleccion == '2':
         copiar_ejemplos(base_dir, template_base)
+        imprimir_info("Scripts copiados a: lib/")
     
     imprimir_exito("Completado")
 
