@@ -1,4 +1,4 @@
-.PHONY clean install build
+.PHONY: clean install build
 
 clean:
 	rm */*.pyc
