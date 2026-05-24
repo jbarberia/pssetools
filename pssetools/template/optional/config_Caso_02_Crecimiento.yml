@@ -1,0 +1,26 @@
+# Template for ACCC batch generation
+# Variables to replace: Caso_02_Crecimiento, caso_02_growth.sav, build, accc_crecimiento.sub, accc.mon, accc.con
+# 
+# Usage:
+#   python generate_config.py --template accc_sweep.yml --variables variables.json --output ./configs
+#
+# This will generate config_Caso_02_Crecimiento.yml for each case in variables.json
+
+workspace:
+  base_dir: "."
+  create_dirs: true
+
+simulations:
+  - name: "ACCC_Caso_02_Crecimiento"
+    type: "accc"
+    case: "casos/caso_02_growth.sav"
+    options:
+      sub: "estudios/accc_crecimiento.sub"
+      mon: "estudios/accc.mon"
+      con: "estudios/accc.con"
+      dfx: "build/accc_Caso_02_Crecimiento.dfx"
+
+execution:
+  continue_on_error: false
+  logging: "normal"
+  parallel: 1

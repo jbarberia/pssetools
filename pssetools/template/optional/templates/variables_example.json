@@ -1,0 +1,44 @@
+{
+  "cases": [
+    {
+      "CASE_NAME": "Caso_01_Base",
+      "CASE_FILE": "caso_01_base.sav",
+      "OUTPUT_DIR": "build",
+      "SUB_FILE": "accc_base.sub",
+      "MON_FILE": "accc.mon",
+      "CON_FILE": "accc.con"
+    },
+    {
+      "CASE_NAME": "Caso_02_Crecimiento",
+      "CASE_FILE": "caso_02_growth.sav",
+      "OUTPUT_DIR": "build",
+      "SUB_FILE": "accc_crecimiento.sub",
+      "MON_FILE": "accc.mon",
+      "CON_FILE": "accc.con"
+    },
+    {
+      "CASE_NAME": "Caso_03_Punta",
+      "CASE_FILE": "caso_03_peak.sav",
+      "OUTPUT_DIR": "build",
+      "SUB_FILE": "accc_punta.sub",
+      "MON_FILE": "accc.mon",
+      "CON_FILE": "accc.con"
+    },
+    {
+      "CASE_NAME": "Caso_04_Valle",
+      "CASE_FILE": "caso_04_valley.sav",
+      "OUTPUT_DIR": "build",
+      "SUB_FILE": "accc_valle.sub",
+      "MON_FILE": "accc.mon",
+      "CON_FILE": "accc.con"
+    },
+    {
+      "CASE_NAME": "Caso_05_Contingencia",
+      "CASE_FILE": "caso_05_contingency.sav",
+      "OUTPUT_DIR": "build",
+      "SUB_FILE": "accc_cont.sub",
+      "MON_FILE": "accc_cont.mon",
+      "CON_FILE": "accc_contingency.con"
+    }
+  ]
+}

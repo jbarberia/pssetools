@@ -1,0 +1,26 @@
+# Template for ACCC batch generation
+# Variables to replace: {{CASE_NAME}}, {{CASE_FILE}}, {{OUTPUT_DIR}}, {{SUB_FILE}}, {{MON_FILE}}, {{CON_FILE}}
+# 
+# Usage:
+#   python generate_config.py --template accc_sweep.yml --variables variables.json --output ./configs
+#
+# This will generate config_{{CASE_NAME}}.yml for each case in variables.json
+
+workspace:
+  base_dir: "."
+  create_dirs: true
+
+simulations:
+  - name: "ACCC_{{CASE_NAME}}"
+    type: "accc"
+    case: "casos/{{CASE_FILE}}"
+    options:
+      sub: "estudios/{{SUB_FILE}}"
+      mon: "estudios/{{MON_FILE}}"
+      con: "estudios/{{CON_FILE}}"
+      dfx: "{{OUTPUT_DIR}}/accc_{{CASE_NAME}}.dfx"
+
+execution:
+  continue_on_error: false
+  logging: "normal"
+  parallel: 1

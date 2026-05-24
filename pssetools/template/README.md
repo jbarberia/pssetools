@@ -154,3 +154,4 @@ All Python scripts are **Python 2.7 compatible** (PSS/E 34 requirement).
 - Full documentation: `pssetools --help`
 - Configuration guide: Edit `config.cfg` with comments
 - Quick reference: See `GEMINI.md` in workspace root
+

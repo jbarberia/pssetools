@@ -1,0 +1,101 @@
+# Multi-Case ACCC Analysis using YAML Anchors
+# This example shows how to avoid duplication by using YAML anchors (&) and aliases (*)
+# 
+# Key Concept: Define common settings once, reference them multiple times
+# Benefit: Single source of truth - change once, applies to all references
+
+workspace: &workspace_config
+  base_dir: "."
+  create_dirs: true
+
+# Define base ACCC study options that will be shared
+base_accc_options: &accc_base
+  sub: "studies/accc.sub"
+  mon: "studies/accc.mon"
+  con: "studies/accc.con"
+
+# Define common execution settings
+execution: &exec_settings
+  continue_on_error: false
+  logging: "normal"
+  parallel: 1
+
+simulations:
+  # Case 1: Using anchor merge (<<) to inherit base settings
+  - name: "ACCC_Caso_01"
+    type: "accc"
+    case: "casos/caso_01.sav"
+    options:
+      <<: *accc_base  # Inherits all keys from accc_base
+      dfx: "build/caso_01.dfx"
+
+  # Case 2: Same pattern - only name, case, and output differ
+  - name: "ACCC_Caso_02"
+    type: "accc"
+    case: "casos/caso_02.sav"
+    options:
+      <<: *accc_base
+      dfx: "build/caso_02.dfx"
+
+  # Case 3: Multiple cases in sequence
+  - name: "ACCC_Caso_03"
+    type: "accc"
+    case: "casos/caso_03.sav"
+    options:
+      <<: *accc_base
+      dfx: "build/caso_03.dfx"
+
+  # Case 4: If you need to override just one option
+  - name: "ACCC_Caso_04_Heavy"
+    type: "accc"
+    case: "casos/caso_04_heavy.sav"
+    options:
+      <<: *accc_base
+      dfx: "build/caso_04_heavy.dfx"
+      # Optional: override a specific option
+      con: "studies/accc_heavy.con"
+
+# Even execution settings can be anchored!
+execution: *exec_settings
+
+# ===================================================================
+# HOW IT WORKS:
+# ===================================================================
+# 
+# YAML Anchors:
+# - & creates an anchor (named reference)
+# - * dereferences the anchor (copies its content)
+# - << is the merge key (recursively merges keys into current object)
+# 
+# Example:
+#   options:
+#     <<: *accc_base    # Copies: sub, mon, con
+#     dfx: "output.dfx" # Adds new key specific to this case
+# 
+# Result in memory:
+#   options:
+#     sub: "studies/accc.sub"    (from anchor)
+#     mon: "studies/accc.mon"    (from anchor)
+#     con: "studies/accc.con"    (from anchor)
+#     dfx: "output.dfx"          (specific to this case)
+# 
+# ===================================================================
+# ADVANTAGES:
+# ===================================================================
+# 
+# 1. DRY (Don't Repeat Yourself)
+#    - Change accc.sub path? Edit it once, all cases use new path
+# 
+# 2. Less error-prone
+#    - No copy-paste mistakes when creating new cases
+# 
+# 3. Easier to maintain
+#    - Clear structure: base settings at top, cases below
+# 
+# 4. Easy to read
+#    - Shows which settings are common vs. case-specific
+# 
+# ===================================================================
+# FOR ADVANCED USE: See config_generator.py for batch generation
+# when you need to handle 50+ cases programmatically
+# ===================================================================

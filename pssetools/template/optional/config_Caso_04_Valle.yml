@@ -1,0 +1,26 @@
+# Template for ACCC batch generation
+# Variables to replace: Caso_04_Valle, caso_04_valley.sav, build, accc_valle.sub, accc.mon, accc.con
+# 
+# Usage:
+#   python generate_config.py --template accc_sweep.yml --variables variables.json --output ./configs
+#
+# This will generate config_Caso_04_Valle.yml for each case in variables.json
+
+workspace:
+  base_dir: "."
+  create_dirs: true
+
+simulations:
+  - name: "ACCC_Caso_04_Valle"
+    type: "accc"
+    case: "casos/caso_04_valley.sav"
+    options:
+      sub: "estudios/accc_valle.sub"
+      mon: "estudios/accc.mon"
+      con: "estudios/accc.con"
+      dfx: "build/accc_Caso_04_Valle.dfx"
+
+execution:
+  continue_on_error: false
+  logging: "normal"
+  parallel: 1

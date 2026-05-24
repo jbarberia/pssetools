@@ -3,6 +3,7 @@ import argparse
 import sys
 import os
 from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, acc_unzip, runner, setup, sim_runner
+from .template.optional.scripts import generate_config
 
 def app():
     """Main entry point for the pssetools CLI.
@@ -113,6 +114,13 @@ def app():
     simrunner_p.add_argument("--dry-run", action="store_true", help="Show commands but do not execute")
     simrunner_p.add_argument("--summary", action="store_true", help="Show configuration summary and exit")
 
+    # gen-config (configuration generator for batch cases)
+    genconfig_p = subparsers.add_parser("gen-config", help="Generate simulation configs from template and variables")
+    genconfig_p.add_argument("-t", "--template", type=str, required=True, help="Template file with {{VARIABLE}} placeholders")
+    genconfig_p.add_argument("-v", "--variables", type=str, required=True, help="JSON file with variable values")
+    genconfig_p.add_argument("-o", "--output", type=str, default=".", help="Output directory for generated configs (default: current dir)")
+    genconfig_p.add_argument("--combined", action="store_true", help="Generate single combined config instead of separate files")
+
     # Show help if no subcommand is provided
     if len(sys.argv) == 1:
         parser.print_help()
@@ -185,6 +193,7 @@ def app():
         "dll": dll,
         "runner": runner,
         "sim-runner": sim_runner,
+        "gen-config": generate_config,
         "setup": setup
     }
     

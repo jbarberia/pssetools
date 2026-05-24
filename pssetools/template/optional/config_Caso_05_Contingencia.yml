@@ -1,0 +1,26 @@
+# Template for ACCC batch generation
+# Variables to replace: Caso_05_Contingencia, caso_05_contingency.sav, build, accc_cont.sub, accc_cont.mon, accc_contingency.con
+# 
+# Usage:
+#   python generate_config.py --template accc_sweep.yml --variables variables.json --output ./configs
+#
+# This will generate config_Caso_05_Contingencia.yml for each case in variables.json
+
+workspace:
+  base_dir: "."
+  create_dirs: true
+
+simulations:
+  - name: "ACCC_Caso_05_Contingencia"
+    type: "accc"
+    case: "casos/caso_05_contingency.sav"
+    options:
+      sub: "estudios/accc_cont.sub"
+      mon: "estudios/accc_cont.mon"
+      con: "estudios/accc_contingency.con"
+      dfx: "build/accc_Caso_05_Contingencia.dfx"
+
+execution:
+  continue_on_error: false
+  logging: "normal"
+  parallel: 1
