@@ -10,6 +10,8 @@
 - **Auto-assignment:** Automatically detects and assigns input files based on their extensions (.sav, .dyr, .sub, etc.).
 - **Configuration Wizard (GUI):** Generate subsystem (.sub), monitor (.mon), contingency (.con), and channel (.idv) files directly from PSS/E SLD diagrams.
 - **Workspace Setup:** Initialize a standard project structure with templates and folder organization.
+- **Simulation Runner:** Execute batch simulations from YAML configurations with **parallel execution support**.
+- **Interactive Scripts:** Windows batch and PowerShell scripts for easy simulation management.
 
 ## Prerequisites
 - **Python:** 2.7 (required for PSS/E 34 compatibility).
@@ -60,6 +62,25 @@ pssetools snp --sav case.sav --dyr data.dyr --snp snapshot.snp
 pssetools dyn --cnv case.cnv --snp snapshot.snp --out results.out --py event.py
 ```
 
+### 5. Batch Simulations with Parallel Execution (NEW!)
+Run multiple simulations simultaneously from a configuration file:
+
+```bash
+# Using interactive script (Windows)
+run_simulations.bat
+
+# Using interactive script (PowerShell)
+.\run_simulations.ps1
+
+# Direct CLI
+pssetools sim-runner --config config_accc_parallel.yml
+
+# With 4 workers (parallel execution)
+pssetools sim-runner --config config_parallel_full.yml
+```
+
+See [SCRIPTS_README.md](SCRIPTS_README.md) for interactive script documentation.
+
 ## GUI Configuration Wizard
 The GUI allows you to select elements in a PSS/E SLD (Slider) and automatically generate the necessary configuration files.
 
@@ -83,4 +104,7 @@ pssetools acc case.sav --config custom_settings.cfg
 
 ## Documentation
 - [Configuration Guide](docs/CONFIG_GUIDE.md)
+- [Simulation Runner Guide](docs/SIM_RUNNER_GUIDE.md) - Batch execution with parallel support
+- [Parametrization Guide](docs/PARAMETRIZATION_GUIDE.md) - Advanced config patterns
+- [Scripts Documentation](SCRIPTS_README.md) - Interactive batch/PowerShell scripts
 - [Contributing](CONTRIBUTING.md)

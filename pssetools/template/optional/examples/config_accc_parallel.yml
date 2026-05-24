@@ -1,0 +1,58 @@
+# PSS/E ACCC Analysis - Parallel Execution Example
+# Run multiple ACCC simulations in parallel (2 workers)
+# Usage: pssetools sim-runner --config config_accc_parallel.yml
+
+workspace:
+  base_dir: "."
+
+simulations:
+  - name: "ACCC_Caso_Base"
+    type: "accc"
+    case: "casos/caso_base.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_base.dfx"
+      acc: "build/caso_base.acc"
+      zipfile: "build/caso_base.zip"
+
+  - name: "ACCC_Caso_Punta"
+    type: "accc"
+    case: "casos/caso_punta.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_punta.dfx"
+      acc: "build/caso_punta.acc"
+      zipfile: "build/caso_punta.zip"
+
+  - name: "ACCC_Caso_Valle"
+    type: "accc"
+    case: "casos/caso_valle.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_valle.dfx"
+      acc: "build/caso_valle.acc"
+      zipfile: "build/caso_valle.zip"
+
+  - name: "ACCC_Caso_Punta_Plus"
+    type: "accc"
+    case: "casos/caso_punta_plus.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_punta_plus.dfx"
+      acc: "build/caso_punta_plus.acc"
+      zipfile: "build/caso_punta_plus.zip"
+
+execution:
+  # Parallel execution: run 2 simulations at once
+  parallel: 2
+  continue_on_error: false
+  logging: "normal"
+  interactive: false

@@ -16,6 +16,8 @@ import sys
 import argparse
 import subprocess
 from datetime import datetime
+from multiprocessing import Pool, Manager
+import signal
 
 
 class Colors:
@@ -179,22 +181,20 @@ def execute_simulation(sim_config, workspace_dir=None, dry_run=False):
         dry_run: If True, show command but don't execute
         
     Returns:
-        (success, output_message)
+        (success, output_message, sim_name)
     """
     sim_name = sim_config.get('name', 'unknown')
     
     try:
         cmd = build_pssetools_command(sim_config)
         if not cmd:
-            return False, "Failed to build command for {}".format(sim_name)
+            return False, "Failed to build command for {}".format(sim_name), sim_name
         
         cmd_str = ' '.join(cmd)
-        print_info("Executing: {}".format(sim_name))
-        print_info("Command: {}".format(cmd_str))
         
         if dry_run:
-            print_warn("DRY RUN - Command not executed")
-            return True, "Dry run"
+            print_info("[DRY] {}: {}".format(sim_name, cmd_str))
+            return True, "Dry run", sim_name
         
         # Execute command
         cwd = workspace_dir if workspace_dir and os.path.exists(workspace_dir) else None
@@ -208,14 +208,19 @@ def execute_simulation(sim_config, workspace_dir=None, dry_run=False):
         stdout, stderr = process.communicate()
         
         if process.returncode == 0:
-            print_success("Completed: {}".format(sim_name))
-            return True, stdout.decode('utf-8', errors='ignore') if stdout else ""
+            return True, stdout.decode('utf-8', errors='ignore') if stdout else "", sim_name
         else:
             error_msg = stderr.decode('utf-8', errors='ignore') if stderr else "Unknown error"
-            return False, error_msg
+            return False, error_msg, sim_name
             
     except Exception as e:
-        return False, "Exception: {}".format(str(e))
+        return False, "Exception: {}".format(str(e)), sim_name
+
+
+def _execute_simulation_wrapper(args):
+    """Wrapper for parallel execution (multiprocessing compatibility)."""
+    sim_config, workspace_dir, dry_run = args
+    return execute_simulation(sim_config, workspace_dir, dry_run)
 
 
 def run_simulations(config, workspace_dir=None, interactive=False, 
@@ -225,7 +230,7 @@ def run_simulations(config, workspace_dir=None, interactive=False,
     Args:
         config: Configuration dictionary
         workspace_dir: Base directory for simulations
-        interactive: If True, ask for confirmation before each simulation
+        interactive: If True, ask for confirmation before execution
         continue_on_error: If True, continue even if a simulation fails
         dry_run: If True, show commands but don't execute
         
@@ -241,39 +246,74 @@ def run_simulations(config, workspace_dir=None, interactive=False,
     if continue_on_error is None:
         continue_on_error = execution_opts.get('continue_on_error', False)
     
+    parallel_jobs = execution_opts.get('parallel', 1)
+    if parallel_jobs < 1:
+        parallel_jobs = 1
+    
     total = len(simulations)
     successful = 0
     failed = 0
     
     print_info("Starting execution of {} simulation(s)".format(total))
+    if parallel_jobs > 1:
+        print_info("Parallel execution: {} jobs".format(parallel_jobs))
     if dry_run:
         print_warn("DRY RUN MODE - No commands will be executed")
     
-    for i, sim in enumerate(simulations, 1):
-        print("\n" + Colors.BOLD + "[{}/{}] {}".format(i, total, sim.get('name', 'Unknown')) + Colors.RESET)
-        
-        if interactive:
-            try:
-                response = input("Execute this simulation? [y/n]: ").strip().lower()
-            except:
-                response = raw_input("Execute this simulation? [y/n]: ").strip().lower()
+    # Sequential execution with interactive option
+    if interactive or parallel_jobs == 1:
+        for i, sim in enumerate(simulations, 1):
+            print("\n" + Colors.BOLD + "[{}/{}] {}".format(i, total, sim.get('name', 'Unknown')) + Colors.RESET)
             
-            if response not in ['y', 'yes']:
-                print_warn("Skipped")
-                continue
-        
-        success, output = execute_simulation(sim, workspace_dir, dry_run)
-        
-        if success:
-            successful += 1
-        else:
-            failed += 1
-            error_preview = output[:200] if output else "Unknown error"
-            print_error("Failed: {}".format(error_preview))
+            if interactive:
+                try:
+                    response = input("Execute this simulation? [y/n]: ").strip().lower()
+                except:
+                    response = raw_input("Execute this simulation? [y/n]: ").strip().lower()
+                
+                if response not in ['y', 'yes']:
+                    print_warn("Skipped")
+                    continue
             
-            if not continue_on_error and not dry_run:
-                print_warn("Stopping execution (continue_on_error=false)")
-                break
+            success, output, sim_name = execute_simulation(sim, workspace_dir, dry_run)
+            
+            if success:
+                print_success("Completed: {}".format(sim_name))
+                successful += 1
+            else:
+                failed += 1
+                error_preview = output[:200] if output else "Unknown error"
+                print_error("Failed: {}".format(error_preview))
+                
+                if not continue_on_error and not dry_run:
+                    print_warn("Stopping execution (continue_on_error=false)")
+                    break
+    else:
+        # Parallel execution
+        try:
+            pool = Pool(processes=parallel_jobs)
+            tasks = [(sim, workspace_dir, dry_run) for sim in simulations]
+            
+            print_info("Queuing {} simulations on {} workers...".format(total, parallel_jobs))
+            results = pool.map(_execute_simulation_wrapper, tasks)
+            pool.close()
+            pool.join()
+            
+            for i, (success, output, sim_name) in enumerate(results, 1):
+                if success:
+                    print_success("[{}/{}] Completed: {}".format(i, total, sim_name))
+                    successful += 1
+                else:
+                    failed += 1
+                    error_preview = output[:100] if output else "Unknown error"
+                    print_error("[{}/{}] Failed {}: {}".format(i, total, sim_name, error_preview))
+                    
+                    if not continue_on_error and not dry_run:
+                        print_warn("Stopping execution (continue_on_error=false)")
+                        break
+        except Exception as e:
+            print_error("Parallel execution error: {}".format(str(e)))
+            return total, 0, total
     
     return total, successful, failed
 

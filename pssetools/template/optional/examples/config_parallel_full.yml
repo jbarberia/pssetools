@@ -1,0 +1,78 @@
+# PSS/E Mixed Study Types - Full Parallel Execution
+# Run ACCC, ASCC, and Dynamic simulations in parallel (4 workers)
+# Usage: pssetools sim-runner --config config_parallel_full.yml
+
+workspace:
+  base_dir: "."
+
+simulations:
+  # ACCC Studies (runs 2 at a time)
+  - name: "ACCC_Operacion_Base"
+    type: "accc"
+    case: "casos/op_base.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/accc_op_base.dfx"
+      acc: "build/accc_op_base.acc"
+      zipfile: "build/accc_op_base.zip"
+
+  - name: "ACCC_Operacion_Punta"
+    type: "accc"
+    case: "casos/op_punta.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/accc_op_punta.dfx"
+      acc: "build/accc_op_punta.acc"
+      zipfile: "build/accc_op_punta.zip"
+
+  # ASCC Studies
+  - name: "ASCC_Operacion_Base"
+    type: "ascc"
+    case: "casos/op_base.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      asc: "build/ascc_op_base.asc"
+      dfx: "build/ascc_op_base.dfx"
+      zipfile: "build/ascc_op_base.zip"
+
+  - name: "ASCC_Operacion_Punta"
+    type: "ascc"
+    case: "casos/op_punta.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      asc: "build/ascc_op_punta.asc"
+      dfx: "build/ascc_op_punta.dfx"
+      zipfile: "build/ascc_op_punta.zip"
+
+  # Dynamic Studies
+  - name: "Dynamic_Scenario_1"
+    type: "dynamic"
+    case: "casos/op_punta.sav"
+    options:
+      dyr: "estudio.dyr"
+      out: "build/dyn_scenario1.out"
+      outx: "build/dyn_scenario1.outx"
+      inl: "build/dyn_scenario1.inl"
+
+  - name: "Dynamic_Scenario_2"
+    type: "dynamic"
+    case: "casos/op_punta.sav"
+    options:
+      dyr: "estudio_alt.dyr"
+      out: "build/dyn_scenario2.out"
+      outx: "build/dyn_scenario2.outx"
+      inl: "build/dyn_scenario2.inl"
+
+execution:
+  # Parallel execution: run 4 simulations simultaneously
+  # Good for systems with 4+ cores
+  parallel: 4
+  continue_on_error: true
+  logging: "normal"
+  interactive: false

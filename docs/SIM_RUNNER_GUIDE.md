@@ -238,6 +238,153 @@ pssetools sim-runner --config config.yml --validate --continue-on-error
 
 ---
 
+## Parallel Execution
+
+### Overview
+
+Run multiple simulations **simultaneously** using multiple CPU cores. Dramatically reduces total execution time for batch analysis.
+
+### Enable Parallel Execution
+
+Add `parallel` parameter to the `execution` section:
+
+```yaml
+execution:
+  parallel: 4           # Run 4 simulations at once
+  continue_on_error: true
+  logging: "normal"
+```
+
+### Configuration
+
+```yaml
+execution:
+  parallel: N           # Number of simultaneous workers (default: 1)
+  continue_on_error: bool  # Continue if a simulation fails
+```
+
+**Recommended values:**
+- `1`: Sequential (default) - Use for debugging or shared systems
+- `2-4`: Moderate parallelism - Laptops, PCs with 4-8 cores
+- `8+`: High parallelism - Servers, dedicated machines
+
+### Example: Parallel ACCC Analysis
+
+**File: config_accc_parallel.yml**
+
+```yaml
+workspace:
+  base_dir: "."
+
+simulations:
+  - name: "ACCC_CasoBase"
+    type: "accc"
+    case: "casos/caso_base.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_base.dfx"
+      acc: "build/caso_base.acc"
+
+  - name: "ACCC_CasoPunta"
+    type: "accc"
+    case: "casos/caso_punta.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_punta.dfx"
+      acc: "build/caso_punta.acc"
+
+  - name: "ACCC_CasoValle"
+    type: "accc"
+    case: "casos/caso_valle.sav"
+    options:
+      sub: "estudio.sub"
+      mon: "estudio.mon"
+      con: "estudio.con"
+      dfx: "build/caso_valle.dfx"
+      acc: "build/caso_valle.acc"
+
+execution:
+  parallel: 2          # Run 2 ACCC at once
+  continue_on_error: false
+  logging: "normal"
+```
+
+**Run:**
+
+```bash
+pssetools sim-runner --config config_accc_parallel.yml
+```
+
+**Expected Output:**
+
+```
+[*] Starting execution of 3 simulation(s)
+[*] Parallel execution: 2 jobs
+[*] Queuing 3 simulations on 2 workers...
+[OK] [1/3] Completed: ACCC_CasoBase
+[OK] [2/3] Completed: ACCC_CasoPunta
+[OK] [3/3] Completed: ACCC_CasoValle
+
+Total simulations: 3
+[OK] Successful: 3
+```
+
+### Performance Notes
+
+**Without Parallel (sequential):**
+```
+Sim1: 5 min + Sim2: 5 min + Sim3: 5 min = 15 min total
+```
+
+**With Parallel (2 workers):**
+```
+(Sim1: 5 min + Sim2: 5 min) parallel with (Sim3: 5 min) = ~10 min total
+```
+
+**With Parallel (3 workers):**
+```
+All 3 run simultaneously = ~5 min total
+```
+
+### Memory & Resource Considerations
+
+⚠️ **Important:** PSS/E simulations can be memory-intensive.
+
+- **Each worker** runs a separate Python process with its own PSS/E library
+- **Memory multiplies:** N workers × memory per simulation
+- **Example:** If one ACCC uses 500 MB, 4 workers = ~2 GB total
+
+**Recommendations:**
+- Monitor system resources while developing
+- Start with `parallel: 2` and increase cautiously
+- On laptops: Limit to 2-3 workers
+- On servers with 16+ GB RAM: Can use 4-8 workers
+
+### Dry-Run with Parallel
+
+Preview the parallel execution plan without running:
+
+```bash
+pssetools sim-runner --config config_accc_parallel.yml --dry-run
+```
+
+Output shows how jobs will be distributed:
+
+```
+[*] Parallel execution: 2 jobs
+[*] Queuing 4 simulations on 2 workers...
+[*] [DRY] ACCC_CasoBase: python -m pssetools accc ...
+[*] [DRY] ACCC_CasoPunta: python -m pssetools accc ...
+[*] [DRY] ACCC_CasoValle: python -m pssetools accc ...
+...
+```
+
+---
+
 ## Examples
 
 ### Example 1: Simple ACCC Study
