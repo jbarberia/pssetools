@@ -18,6 +18,7 @@ import subprocess
 from datetime import datetime
 from multiprocessing import Pool, Manager
 import signal
+from . import config_converter
 
 
 class Colors:
@@ -103,11 +104,11 @@ def validate_simulation_config(sim_config, sim_index):
             return False, "Simulation {} missing required field: {}".format(sim_index, field)
     
     sim_type = sim_config.get('type')
-    if sim_type not in ['accc', 'ascc', 'dynamic', 'cnv', 'snp', 'dll', 'dfx', 'acc-pp']:
+    if sim_type not in ['accc', 'ascc', 'dynamic', 'cnv', 'snp', 'dyn', 'dll', 'dfx', 'acc-pp']:
         return False, "Simulation {} has invalid type: {}".format(sim_index, sim_type)
     
     # Type-specific validation
-    case_types = {'accc', 'ascc', 'dynamic', 'cnv', 'snp', 'dfx', 'acc-pp'}
+    case_types = {'accc', 'ascc', 'dynamic', 'cnv', 'snp', 'dyn', 'dfx', 'acc-pp'}
     if sim_type in case_types and 'case' not in sim_config:
         return False, "Simulation {} ({}) requires 'case' field".format(sim_index, sim_type)
     
@@ -395,6 +396,17 @@ def main():
     config = load_yaml_safe(args.config)
     if not config:
         return 1
+    
+    # Normalize config: convert simple format → standard if needed
+    print_info("Detecting configuration format...")
+    fmt = config_converter.detect_format(config)
+    if fmt == 'simple':
+        print_info("Simple format detected - expanding...")
+        config = config_converter.normalize_config(config)
+    elif fmt == 'standard':
+        print_info("Standard format detected")
+    else:
+        print_warn("Unknown format - attempting standard parsing")
     
     # Validate configuration
     valid, errors = validate_config(config)

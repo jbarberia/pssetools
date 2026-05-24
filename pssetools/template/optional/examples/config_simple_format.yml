@@ -1,0 +1,66 @@
+# Nuevo formato de configuración simplificado para pssetools sim-runner
+# 
+# Ejemplo:
+# 
+# accc:
+#   sav:
+#     - "caso1.sav"
+#     - "caso2.sav"
+#   sub: "estudio.sub"
+#   con: "estudio.con"
+#   mon: "estudio.mon"
+#
+# ascc:
+#   sav:
+#     - "caso1.sav"
+#     - "caso2.sav"
+#   sub: "estudio.sub"
+#
+# dinamico:
+#   sav:
+#     - "caso1.sav"
+#     - "caso2.sav"
+#   py:
+#     - "evento1.py"
+#     - "evento2.py"
+#
+# Esto genera:
+# - ACCC: 2 simulaciones (1 por cada .sav)
+# - ASCC: 2 simulaciones (1 por cada .sav)
+# - Dinámico: 4 simulaciones (2 casos × 2 scripts)
+#
+# Formato: YAML simple, lista de casos por tipo
+
+# Ejemplo REAL de uso:
+
+accc:
+  sav:
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/inv25hr.sav"
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/inv25pi.sav"
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/inv25va.sav"
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/ver2526pid.sav"
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/ver2526pin.sav"
+  sub: "estudio.sub"
+  con: "estudio.con"
+  mon: "estudio.mon"
+
+ascc:
+  sav:
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/inv25hr.sav"
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/inv25pi.sav"
+  sub: "estudio.sub"
+
+dinamico:
+  sav:
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/inv25hr.sav"
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/inv25pi.sav"
+    - "G:/Unidades compartidas/PSSE/BDCammesa/2025/inv25va.sav"
+  py:
+    - "foo1.py"
+    - "foo2.py"
+
+# Esto genera:
+# - ACCC: 5 simulaciones
+# - ASCC: 2 simulaciones
+# - Dinámico: 3 × 2 = 6 simulaciones
+# Total: 13 simulaciones

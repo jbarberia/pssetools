@@ -103,6 +103,7 @@ pssetools acc case.sav --config custom_settings.cfg
 ```
 
 ## Documentation
+- [Simple Configuration Format](SIMPLE_CONFIG_GUIDE.md) ⭐ **START HERE** - Clean, organized syntax for defining simulations
 - [Configuration Guide](docs/CONFIG_GUIDE.md)
 - [Simulation Runner Guide](docs/SIM_RUNNER_GUIDE.md) - Batch execution with parallel support
 - [Parametrization Guide](docs/PARAMETRIZATION_GUIDE.md) - Advanced config patterns
