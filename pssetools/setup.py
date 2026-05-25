@@ -1,27 +1,75 @@
-"""Initialization script for pssetools workspaces.
+"""Asistente interactivo de configuración para proyectos pssetools.
 
-This script delegates to the interactive setup wizard (setup_wizard.py)
-which guides users through creating a standard workspace structure.
+Este módulo proporciona un asistente interactivo completo para crear
+y modificar proyectos pssetools con estructura estándar.
 """
 
 from __future__ import print_function
+import os
 import sys
+import shutil
 
-try:
-    from . import setup_wizard
-except ImportError:
-    import setup_wizard
+
+class Colores:
+    """Códigos de color ANSI para terminal."""
+
+    CYAN = '\033[96m'
+    VERDE = '\033[92m'
+    AMARILLO = '\033[93m'
+    AZUL = '\033[94m'
+    RESET = '\033[0m'
+    NEGRITA = '\033[1m'
+
+
+def imprimir_encabezado(texto):
+    """Imprime encabezado formateado."""
+    print("\n" + Colores.NEGRITA + Colores.CYAN + "=" * 60 + Colores.RESET)
+    print(Colores.NEGRITA + Colores.CYAN + texto.center(60) + Colores.RESET)
+    print(Colores.NEGRITA + Colores.CYAN + "=" * 60 + Colores.RESET + "\n")
+
+
+def imprimir_exito(texto):
+    """Imprime mensaje de éxito."""
+    print(Colores.VERDE + "[OK] " + texto + Colores.RESET)
+
+
+def imprimir_info(texto):
+    """Imprime mensaje informativo."""
+    print(Colores.AZUL + "[*] " + texto + Colores.RESET)
+
+
+def copiar_template_completo(base_dir, template_base):
+    """Copia el template completo con estructura prearmada."""
+    imprimir_info("Copiando estructura de proyecto...")
+
+    for item in os.listdir(template_base):
+        src = os.path.join(template_base, item)
+        dst = os.path.join(base_dir, item)
+
+        # Skip if already exists
+        if os.path.exists(dst):
+            imprimir_info("Ya existe: {}".format(item))
+            continue
+
+        # Copy directories
+        if os.path.isdir(src):
+            shutil.copytree(src, dst)
+            imprimir_exito("Carpeta: {}".format(item))
+        # Copy files
+        elif os.path.isfile(src):
+            shutil.copy2(src, dst)
+            imprimir_exito("Archivo: {}".format(item))
 
 
 def run(**kwargs):
-    """Run the interactive setup wizard."""
-    return setup_wizard.run_wizard()
+    """Ejecuta el asistente interactivo."""
+    imprimir_encabezado("PSSETOOLS")
 
+    base_dir = os.getcwd()
+    template_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/template'
 
-if __name__ == "__main__":
-    try:
-        success = run()
-        sys.exit(0 if success else 1)
-    except KeyboardInterrupt:
-        print("\nSetup cancelled by user.")
-        sys.exit(1)
+    if not os.path.exists(template_base):
+        import pkg_resources
+
+        template_base = pkg_resources.resource_filename('pssetools', 'template')
+        copiar_template_completo(base_dir, template_base)

@@ -79,6 +79,8 @@ pssetools sim-runner --config config_accc_parallel.yml
 pssetools sim-runner --config config_parallel_full.yml
 ```
 
+If you prefer a single explicit orchestrator instead of YAML-driven flows, use the root-level `main.py` script as a small master entry point for menu-driven studies.
+
 See [SCRIPTS_README.md](SCRIPTS_README.md) for interactive script documentation.
 
 ## GUI Configuration Wizard
