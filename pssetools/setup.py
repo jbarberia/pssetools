@@ -41,6 +41,7 @@ def imprimir_info(texto):
 def copiar_template_completo(base_dir, template_base):
     """Copia el template completo con estructura prearmada."""
     imprimir_info("Copiando estructura de proyecto...")
+    ignore_patterns = shutil.ignore_patterns("*.pyc", "*.pyo", "__pycache__")
 
     for item in os.listdir(template_base):
         src = os.path.join(template_base, item)
@@ -53,7 +54,7 @@ def copiar_template_completo(base_dir, template_base):
 
         # Copy directories
         if os.path.isdir(src):
-            shutil.copytree(src, dst)
+            shutil.copytree(src, dst, ignore=ignore_patterns)
             imprimir_exito("Carpeta: {}".format(item))
         # Copy files
         elif os.path.isfile(src):
