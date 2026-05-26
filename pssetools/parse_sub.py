@@ -1,5 +1,5 @@
 # coding: latin-1
-from . import psse34
+from . import psse
 from . import psspy
 import re
 from collections import namedtuple

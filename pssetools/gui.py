@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import Tkinter as tk
 import ttk
-import psse34
+from . import psse
 import psspy
 import sliderPy
 import sys

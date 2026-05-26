@@ -1,11 +1,13 @@
 # coding: latin-1
 from __future__ import print_function
 import os
-import sys
 import subprocess
+import sys
 
-from . import psse34
+from . import PSSE_PATH_BAT
+from . import PSSE_VERSION
 from . import get_config
+from . import psse
 
 
 def run(dll, sources, config, **kwargs):
@@ -28,21 +30,31 @@ def run(dll, sources, config, **kwargs):
         Exception: If DLL creation fails.
     """
 
-    # configuracion del PATH
-    subprocess.call(r"C:\Program Files (x86)\PTI\PSSE34\SET_PSSE_PATH.BAT")
-    import psse_env_manager
+    try:
+        import psse_env_manager
+    except ImportError:
+        sys.stderr.write("se cancela la compilacion\n")
+        sys.stderr.write("psse_env_manager no instalado")
+        sys.exit(1)
 
+    # configuracion de version
     config = get_config(config)
-    os.environ['PATH']    = config["DLL"]["PATH"].replace("\n", ";")
-    os.environ['LIB']     = config["DLL"]["LIB"].replace("\n", ";")
+    psse_vrsn = config["DLL"]["PSSE_VERSION"]
+    ivfversion = config["DLL"]["IVF_VERSION"]
+
+    # configuracion del PATH
+    psse_env_manager.set_local_env(psse_vrsn, useivfvrsn='latest', showprg=True)
+    os.environ['PATH'] = config["DLL"]["PATH"].replace("\n", ";")
+    os.environ['LIB'] = config["DLL"]["LIB"].replace("\n", ";")
     os.environ['INCLUDE'] = config["DLL"]["INCLUDE"].replace("\n", ";")
-    
+
     # remueve archivos viejos
-    if os.path.isfile(dll): os.remove(dll)
+    if os.path.isfile(dll):
+        os.remove(dll)
 
     # src files
     src_lst = []
-    for ext in ['.flx','.f','.for','.f90']:       #include conec & conet files
+    for ext in ['.flx', '.f', '.for', '.f90']:  # include conec & conet files
         for f in sources:
             if f.endswith(ext):
                 src_lst.append(f)
@@ -54,20 +66,33 @@ def run(dll, sources, config, **kwargs):
             if f.endswith(ext):
                 objlibfiles.append(f)
 
-    psse_vrsn = 34
-    ivfversion = 18
     addopstr = psse_env_manager.ivf_compiler_options_add(ivfversion, "/Qdiag-disable:10448")
-    addopstr = psse_env_manager.ivf_compiler_options_add(ivfversion, "/Qm32")
-    
-    ierr = psse_env_manager.create_dll(psse_vrsn, src_lst, modsources=[], 
-        objlibfiles=objlibfiles, dllname=os.path.basename(dll), workdir=os.path.dirname(dll),
-        showprg=True, useivfvrsn=ivfversion, shortname='DSUSR', description='User Model',
-        majorversion=1, minorversion=0, buildversion=0, companyname='', mypathlib=False,
-        keep=False, keepf=False)
-    
+    addopstr = psse_env_manager.ivf_compiler_options_remove(ivfversion, "/Qauto")
+    # addopstr = psse_env_manager.ivf_compiler_options_add(ivfversion, "/Qm32")
+
+    ierr = psse_env_manager.create_dll(
+        psse_vrsn,
+        src_lst,
+        modsources=[],
+        objlibfiles=objlibfiles,
+        dllname=os.path.basename(dll),
+        workdir=os.path.dirname(dll),
+        showprg=True,
+        useivfvrsn=ivfversion,
+        shortname='DSUSR',
+        description='User Model',
+        majorversion=1,
+        minorversion=0,
+        buildversion=0,
+        companyname='',
+        mypathlib=False,
+        keep=False,
+        keepf=False,
+    )
+
     if ierr != 0:
         raise Exception("Error creating DLL: {}".format(ierr))
-    
+
     # retiro .lib
     lib_file = dll.replace(".dll", ".lib")
     if os.path.exists(lib_file):

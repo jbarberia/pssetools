@@ -1,6 +1,6 @@
 # pssetools
 
-**pssetools** is a command-line interface (CLI) and GUI utility for automating PSS/E (v34) activities, including ACCC, ASCC, dynamic simulations, and user model DLL compilation. It simplifies complex PSS/E workflows by providing a modern interface and automatic file assignment.
+**pssetools** is a command-line interface (CLI) and GUI utility for automating PSS/E (v34/v36) activities, including ACCC, ASCC, dynamic simulations, and user model DLL compilation. It simplifies complex PSS/E workflows by providing a modern interface and automatic file assignment.
 
 ## Features
 - **ACCC Contingency Analysis:** Run and post-process contingency results with support for parallel execution.
@@ -14,8 +14,8 @@
 - **Interactive Scripts:** Windows batch and PowerShell scripts for easy simulation management.
 
 ## Prerequisites
-- **Python:** 2.7 (required for PSS/E 34 compatibility).
-- **PSS/E:** Version 34 must be installed and in the system PATH.
+- **Python:** 32-bit for PSS/E 34 or 64-bit for PSS/E 36.
+- **PSS/E:** Version 34 (32-bit) or 36 (64-bit) installed and in the system PATH.
 - **Dependencies:** `pandas`, `Tkinter` (included in standard Python 2.7).
 
 ## Installation

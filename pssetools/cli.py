@@ -2,7 +2,8 @@ from __future__ import print_function
 import argparse
 import sys
 import os
-from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, acc_unzip, runner, setup, sim_runner
+from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, acc_unzip, runner, setup
+
 
 def app():
     """Main entry point for the pssetools CLI.
@@ -17,11 +18,8 @@ def app():
     parent_parser.add_argument("--sav", type=str, help="PSS/E Case (.sav)")
     parent_parser.add_argument("--config", type=str, help="Configuration file (.cfg)")
 
-    parser = argparse.ArgumentParser(
-        prog="pssetools", 
-        description="PSS/E Tools CLI - Centralized access to PSS/E activities"
-    )
-    
+    parser = argparse.ArgumentParser(prog="pssetools", description="PSS/E Tools CLI - Centralized access to PSS/E activities")
+
     # Python 2.7 subparsers doesn't support 'required=True'
     subparsers = parser.add_subparsers(dest="command", help="Sub-commands")
 
@@ -104,15 +102,6 @@ def app():
     # setup
     setup_p = subparsers.add_parser("setup", help="Initialize workspace with templates and folders")
 
-    # sim-runner (simulation runner with YAML config)
-    simrunner_p = subparsers.add_parser("sim-runner", help="Execute simulations from YAML/JSON configuration")
-    simrunner_p.add_argument("--config", type=str, default="config.yaml", help="Configuration file (default: config.yaml)")
-    simrunner_p.add_argument("--validate", action="store_true", help="Validate configuration without executing")
-    simrunner_p.add_argument("--interactive", action="store_true", help="Ask for confirmation before each simulation")
-    simrunner_p.add_argument("--continue-on-error", action="store_true", help="Continue even if simulation fails")
-    simrunner_p.add_argument("--dry-run", action="store_true", help="Show commands but do not execute")
-    simrunner_p.add_argument("--summary", action="store_true", help="Show configuration summary and exit")
-
     # Show help if no subcommand is provided
     if len(sys.argv) == 1:
         parser.print_help()
@@ -125,7 +114,17 @@ def app():
 
     # Show subcommand help if no arguments provided (and no files)
     # Exclude booleans and 'command' itself
-    if cmd != 'setup' and not any([v for k, v in cmd_args.items() if k != 'command' and v is not None and v is not False and not (isinstance(v, list) and len(v) == 0)]) and not files:
+    if (
+        cmd != 'setup'
+        and not any(
+            [
+                v
+                for k, v in cmd_args.items()
+                if k != 'command' and v is not None and v is not False and not (isinstance(v, list) and len(v) == 0)
+            ]
+        )
+        and not files
+    ):
         # Find the subparser to print its help
         for action in parser._actions:
             if isinstance(action, argparse._SubParsersAction):
@@ -150,28 +149,33 @@ def app():
         ".scf": "report",
         ".flx": "cc",
     }
-    
+
     for f in files:
         _, ext = os.path.splitext(f.lower())
         arg_name = extension_map.get(ext)
-        
+
         # Handle .py ambiguity
         if ext == ".py":
-            if cmd == "cnv": arg_name = "py"
-            elif cmd == "dyn": arg_name = "py"
-            elif cmd in ("runner", "run"): arg_name = "script"
+            if cmd == "cnv":
+                arg_name = "py"
+            elif cmd == "dyn":
+                arg_name = "py"
+            elif cmd in ("runner", "run"):
+                arg_name = "script"
 
         # Handle .flx in snp (cc and ct)
         if ext == ".flx" and cmd == "snp":
-            if cmd_args.get("cc") is None: arg_name = "cc"
-            else: arg_name = "ct"
+            if cmd_args.get("cc") is None:
+                arg_name = "cc"
+            else:
+                arg_name = "ct"
 
         if arg_name and arg_name in cmd_args:
             if isinstance(cmd_args[arg_name], list):
                 cmd_args[arg_name].append(f)
             elif cmd_args[arg_name] is None:
                 cmd_args[arg_name] = f
-    
+
     # Dispatch
     modules = {
         "acc": acc,
@@ -184,12 +188,12 @@ def app():
         "snp": snp,
         "dll": dll,
         "runner": runner,
-        "sim-runner": sim_runner,
-        "setup": setup
+        "setup": setup,
     }
-    
+
     if cmd in modules:
         modules[cmd].run(**cmd_args)
+
 
 if __name__ == "__main__":
     app()
