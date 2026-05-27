@@ -1,113 +1,94 @@
 # pssetools
 
-**pssetools** is a command-line interface (CLI) and GUI utility for automating PSS/E (v34/v36) activities, including ACCC, ASCC, dynamic simulations, and user model DLL compilation. It simplifies complex PSS/E workflows by providing a modern interface and automatic file assignment.
+**pssetools** es una utilidad de línea de comandos (CLI) y GUI para automatizar actividades de PSS/E (v34/v36), incluyendo ACCC, ASCC, simulaciones dinámicas y compilación de DLLs de modelos de usuario. Simplifica los flujos de trabajo complejos de PSS/E proporcionando una interfaz moderna y asignación automática de archivos.
 
-## Features
-- **ACCC Contingency Analysis:** Run and post-process contingency results with support for parallel execution.
-- **ASCC Short Circuit:** Automate short circuit reports for various fault types (3PH, LG, LL, LLG).
-- **Dynamic Simulation:** Manage snapshots (.snp), converted cases (.cnv), and time-domain runs with custom event scripts.
-- **User DLLs:** Compile user models using PSSE environment tools (Intel oneAPI, MSVC).
-- **Auto-assignment:** Automatically detects and assigns input files based on their extensions (.sav, .dyr, .sub, etc.).
-- **Configuration Wizard (GUI):** Generate subsystem (.sub), monitor (.mon), contingency (.con), and channel (.idv) files directly from PSS/E SLD diagrams.
-- **Workspace Setup:** Initialize a standard project structure with templates and folder organization.
-- **Simulation Runner:** Execute batch simulations from YAML configurations with **parallel execution support**.
-- **Interactive Scripts:** Windows batch and PowerShell scripts for easy simulation management.
+## Características
+- **Análisis de Contingencias ACCC:** Ejecuta y procesa resultados de contingencias.
+- **Cortocircuito ASCC:** Automatiza reportes de cortocircuito para varios tipos de fallas (3PH, LG, LL, LLG).
+- **Simulación Dinámica:** Gestiona snapshots (.snp), casos convertidos (.cnv) y ejecuciones en el dominio del tiempo con scripts de eventos personalizados.
+- **DLLs de Usuario:** Compila modelos de usuario utilizando las herramientas del entorno PSSE (Intel oneAPI, MSVC).
+- **Asignación Automática:** Detecta y asigna automáticamente archivos de entrada basados en sus extensiones (.sav, .dyr, .sub, etc.).
+- **Asistente de Configuración (GUI):** Genera archivos de subsistema (.sub), monitoreo (.mon), contingencias (.con) y canales (.idv) directamente desde diagramas SLD de PSS/E.
+- **Configuración del Espacio de Trabajo:** Inicializa una estructura de proyecto estándar con plantillas, un Makefile y organización de carpetas.
 
-## Prerequisites
-- **Python:** 32-bit for PSS/E 34 or 64-bit for PSS/E 36.
-- **PSS/E:** Version 34 (32-bit) or 36 (64-bit) installed and in the system PATH.
-- **Dependencies:** `pandas`, `Tkinter` (included in standard Python 2.7).
+## Requisitos Previos
+- **Python:** 32-bit para PSS/E 34 o 64-bit para PSS/E 36.
+- **PSS/E:** Versión 34 (32-bit) o 36 (64-bit) instalado y en el PATH del sistema.
+- **Dependencias:** `pandas`, `Tkinter` (incluido en Python 2.7 estándar).
 
-## Installation
+## Instalación
 
-### For Users
-Install the package directly from the repository:
+### Para Usuarios
+Instala el paquete directamente desde el repositorio:
 ```bash
 git clone https://github.com/User/pssetools.git
 cd pssetools
 make install
 ```
 
+## Inicio Rápido (CLI)
 
-## Quick Start (CLI)
-
-### 1. Initialize Workspace
-Create the standard folder structure (`build/`, `log/`, `results/`) and copy templates:
+### 1. Inicializar Espacio de Trabajo
+Crea la estructura de carpetas estándar (`build/`, `log/`, `results/`) y copia las plantillas:
 ```bash
 pssetools setup
 ```
 
-### 2. ACCC Analysis
-Run ACCC and post-process results into reports:
+### 2. Análisis ACCC
+Ejecuta ACCC y procesa los resultados en reportes:
 ```bash
-# Run ACCC
+# Ejecutar ACCC
 pssetools acc case.sav estudio.sub estudio.mon estudio.con --acc results.acc
 
-# Post-process to CSV reports
+# Post-procesar a reportes CSV
 pssetools acc-pp results.acc --frp flow_report.csv --vrp volt_report.csv
 ```
 
-### 3. Short Circuit
+### 3. Cortocircuito
 ```bash
 pssetools ascc --sav case.sav --sub estudio.sub --report fault_study.scf
 ```
 
-### 4. Dynamic Simulation
-Build a snapshot and run a simulation with a custom event script:
+### 4. Simulación Dinámica
+Construye un snapshot y ejecuta una simulación con un script de eventos personalizado:
 ```bash
-# Create Snapshot
+# Crear Snapshot
 pssetools snp --sav case.sav --dyr data.dyr --snp snapshot.snp
 
-# Run simulation
+# Ejecutar simulación
 pssetools dyn --cnv case.cnv --snp snapshot.snp --out results.out --py event.py
 ```
 
-### 5. Batch Simulations with Parallel Execution (NEW!)
-Run multiple simulations simultaneously from a configuration file:
-
+### 5. Automatización (Makefile)
+El espacio de trabajo inicializado con `pssetools setup` incluye un `Makefile` para ejecutar todos los estudios en modo lote:
 ```bash
-# Using interactive script (Windows)
-run_simulations.bat
-
-# Using interactive script (PowerShell)
-.\run_simulations.ps1
-
-# Direct CLI
-pssetools sim-runner --config config_accc_parallel.yml
-
-# With 4 workers (parallel execution)
-pssetools sim-runner --config config_parallel_full.yml
+make estatico       # Todos los análisis de contingencias
+make cortocircuito  # Todos los reportes de cortocircuito
+make dinamico       # Todas las corridas de estabilidad transitoria
 ```
 
-If you prefer a single explicit orchestrator instead of YAML-driven flows, use the root-level `main.py` script as a small master entry point for menu-driven studies.
+## Asistente de Configuración GUI
+La GUI te permite seleccionar elementos en un diagrama SLD (Slider) de PSS/E y generar automáticamente los archivos de configuración necesarios.
 
-See [SCRIPTS_README.md](SCRIPTS_README.md) for interactive script documentation.
-
-## GUI Configuration Wizard
-The GUI allows you to select elements in a PSS/E SLD (Slider) and automatically generate the necessary configuration files.
-
-**To launch the GUI:**
+**Para lanzar la GUI:**
 ```bash
 pssetools gui
 ```
-- **Tabs:** Manage `.sub`, `.mon`, `.con`, and `.idv` (channels) separately.
-- **Shortcuts:**
-  - `Ctrl+S`: Save current tab.
-  - `Ctrl+Shift+S`: Save all tabs with a base name.
-  - `Ctrl+Tab`: Switch tabs.
-  - `Alt+1`: Generate content from selected SLD elements.
+- **Pestañas:** Gestiona `.sub`, `.mon`, `.con` y `.idv` (canales) por separado.
+- **Atajos:**
+  - `Ctrl+S`: Guardar pestaña actual.
+  - `Ctrl+Shift+S`: Guardar todas las pestañas con un nombre base.
+  - `Ctrl+Tab`: Cambiar de pestaña.
+  - `Alt+1`: Generar contenido a partir de los elementos seleccionados en el SLD.
 
-## Configuration
-Activities are controlled via `config.cfg`. You can specify a custom config file using the `--config` flag to override defaults.
+## Configuración
+Las actividades se controlan a través de `config.cfg`. Puedes especificar un archivo de configuración personalizado usando la bandera `--config` para sobrescribir los valores por defecto.
 
 ```bash
 pssetools acc case.sav --config custom_settings.cfg
 ```
 
-## Documentation
-- [Simple Configuration Format](SIMPLE_CONFIG_GUIDE.md) ⭐ **START HERE** - Clean, organized syntax for defining simulations
-- [Configuration Guide](docs/CONFIG_GUIDE.md)
-- [Simulation Runner Guide](docs/SIM_RUNNER_GUIDE.md) - Batch execution with parallel support
-- [Parametrization Guide](docs/PARAMETRIZATION_GUIDE.md) - Advanced config patterns
-- [Scripts Documentation](SCRIPTS_README.md) - Interactive batch/PowerShell scripts
-- [Contributing](CONTRIBUTING.md)
+## Documentación
+- [Guía de Configuración](docs/CONFIG_GUIDE.md) - Cómo personalizar las actividades de PSS/E mediante archivos .cfg
+- [Referencia de API (Interna)](docs/docs/GEMINI.md) - Guía para LLMs y flujos de trabajo automatizados
+- [Contribución](CONTRIBUTING.md)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pssetools"
-version = "0.2.1"
+version = "0.3.0"
 description = ""
 authors = ["jbarberia <jbarberia@frba.utn.edu.ar>"]
 readme = "README.md"
