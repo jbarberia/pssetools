@@ -2,7 +2,7 @@ from __future__ import print_function
 import argparse
 import sys
 import os
-from . import acc, ascc, cnv, dfx, dyn, snp, dll, acc_pp, acc_unzip, runner, setup
+from . import acc, ascc, cnv, dfx, dyn, dyn_pp, snp, dll, acc_pp, acc_unzip, runner, setup
 
 
 def app():
@@ -77,6 +77,12 @@ def app():
     dyn_p.add_argument("--no-debug", dest="no_debug", action="store_true", default=False, help="Disable debug output")
     add_files_arg(dyn_p)
 
+    # dyn-pp
+    dyn_pp_p = subparsers.add_parser("dyn-pp", parents=[parent_parser], help="Dynamic output post-processing")
+    dyn_pp_p.add_argument("--out", type=str, help="Input .out file")
+    dyn_pp_p.add_argument("--ofile", type=str, help="Output .csv/.xlsx file")
+    add_files_arg(dyn_pp_p)
+
     # snp
     snp_p = subparsers.add_parser("snp", parents=[parent_parser], help="Create Snapshot")
     snp_p.add_argument("--snp", type=str, help="Output .snp file")
@@ -145,6 +151,7 @@ def app():
         ".snp": "snp",
         ".cnv": "cnv",
         ".out": "out",
+        ".csv": "ofile",
         ".cfg": "config",
         ".scf": "report",
         ".flx": "cc",
@@ -185,6 +192,7 @@ def app():
         "cnv": cnv,
         "dfx": dfx,
         "dyn": dyn,
+        "dyn-pp": dyn_pp,
         "snp": snp,
         "dll": dll,
         "runner": runner,

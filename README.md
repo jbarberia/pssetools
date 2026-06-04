@@ -6,6 +6,7 @@
 - **Análisis de Contingencias ACCC:** Ejecuta y procesa resultados de contingencias.
 - **Cortocircuito ASCC:** Automatiza reportes de cortocircuito para varios tipos de fallas (3PH, LG, LL, LLG).
 - **Simulación Dinámica:** Gestiona snapshots (.snp), casos convertidos (.cnv) y ejecuciones en el dominio del tiempo con scripts de eventos personalizados.
+- **Post-procesamiento Dinámico:** Convierte archivos de salida (.out) a CSV de canales.
 - **DLLs de Usuario:** Compila modelos de usuario utilizando las herramientas del entorno PSSE (Intel oneAPI, MSVC).
 - **Asignación Automática:** Detecta y asigna automáticamente archivos de entrada basados en sus extensiones (.sav, .dyr, .sub, etc.).
 - **Asistente de Configuración (GUI):** Genera archivos de subsistema (.sub), monitoreo (.mon), contingencias (.con) y canales (.idv) directamente desde diagramas SLD de PSS/E.
@@ -57,6 +58,9 @@ pssetools snp --sav case.sav --dyr data.dyr --snp snapshot.snp
 
 # Ejecutar simulación
 pssetools dyn --cnv case.cnv --snp snapshot.snp --out results.out --py event.py
+
+# Post-procesar canales a CSV
+pssetools dyn-pp results.out --ofile channels.csv
 ```
 
 ### 5. Automatización (Makefile)

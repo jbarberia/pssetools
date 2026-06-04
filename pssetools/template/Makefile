@@ -53,6 +53,7 @@ CT             := $(BUILD_DIR)/$(SNP_BASE)_ct.flx
 SAV_BASES      := $(basename $(notdir $(SAVS)))
 DYN_PY_BASES   := $(basename $(notdir $(DYN_PY)))
 DYN_OUTS := $(foreach s,$(SAV_BASES),$(foreach p,$(DYN_PY_BASES),$(RESULTS_DIR)/dyn_$(s)_$(p)/$(s)_$(p).out))
+DYN_TSVS := $(DYN_OUTS:.out=.tsv)
 
 
 # ==============================
@@ -82,6 +83,9 @@ $(DLL_OUT): $(DLL_SOURCES) $(CONFIG) | $(BUILD_DIR) $(LOG_DIR)
 define DYN_RULE
 $(RESULTS_DIR)/dyn_$(1)_$(2)/$(1)_$(2).out: $(BUILD_DIR)/$(1).cnv $(SNP) $(filter %/$(2).py $(2).py,$(DYN_PY)) $(DYN_DLLS) | $(RESULTS_DIR)/dyn_$(1)_$(2) $(LOG_DIR)
 	python -m pssetools dyn --cnv $(BUILD_DIR)/$(1).cnv --snp $(SNP) --out $$@ $(if $(DYN_DLLS),--dll $(DYN_DLLS),) --py $(filter %/$(2).py $(2).py,$(DYN_PY)) $(if $(DYN_NO_DEBUG),--no-debug,) > $(LOG_DIR)/$(1)_$(2).dyn.log 2>&1
+
+$(RESULTS_DIR)/dyn_$(1)_$(2)/$(1)_$(2).tsv: $(RESULTS_DIR)/dyn_$(1)_$(2)/$(1)_$(2).out $(CONFIG) | $(RESULTS_DIR)/dyn_$(1)_$(2) $(LOG_DIR)
+	python -m pssetools dyn-pp --out $$< --ofile $$@ --config $(CONFIG) > $(LOG_DIR)/$(1)_$(2).dyn-pp.log 2>&1
 endef
 $(foreach s,$(SAV_BASES),$(foreach p,$(DYN_PY_BASES),$(eval $(call DYN_RULE,$(s),$(p)))))
 
@@ -110,7 +114,7 @@ snapshot: cnv
 cnv: $(CNV)
 snapshot: $(SNP)
 dll: $(DLL_OUT)
-dyn: $(DYN_OUTS)
+dyn: $(DYN_TSVS)
 
 estatico: $(DFX) $(ACC) $(FRP) $(VRP) $(ACC_ZIP) $(ACC_UNZIP_DIRS)
 
