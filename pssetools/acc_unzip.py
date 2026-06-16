@@ -27,11 +27,11 @@ def _get_contingencies(working_folder):
 
 
 @pss_activity
-def run(zipfile, folder, **kwargs):
+def run(zip, folder, **kwargs):
     if not os.path.isdir(folder):
         os.makedirs(folder)
 
-    working_folder = _extract_zip_file(zipfile)
+    working_folder = _extract_zip_file(zip)
     contingencies = _get_contingencies(working_folder)
 
     psspy.case(os.path.join(working_folder, "InitCase.sav"))
@@ -39,7 +39,7 @@ def run(zipfile, folder, **kwargs):
 
     for colabel, coid in contingencies:
         psspy.case(os.path.join(working_folder, "InitCase.sav"))
-        ierr = psspy.getcontingencysavedcase(zipfile.encode("utf-8"), coid)
+        ierr = psspy.getcontingencysavedcase(zip.encode("utf-8"), coid)
         psspy.save(os.path.join(folder, colabel))
 
     return 0

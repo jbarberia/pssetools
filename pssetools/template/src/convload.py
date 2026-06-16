@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import psspy
+
 _i = psspy.getdefaultint()
 _f = psspy.getdefaultreal()
 _s = psspy.getdefaultchar()
