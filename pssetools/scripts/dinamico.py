@@ -16,6 +16,7 @@ def correr_por(segundos=None, ciclos=None):
     ierr, time = psspy.dsrval("TIME")
     return time
 
+
 def correr_hasta(segundos=None, ciclos=None):
     ierr, time = psspy.dsrval("TIME")
     if segundos:
@@ -27,7 +28,6 @@ def correr_hasta(segundos=None, ciclos=None):
 
     ierr, time = psspy.dsrval("TIME")
     return time
-
 
 
 def falla_monofasica(ibus, jbus, ckt, zf=0.0+0.0j, location=0.5):
@@ -125,6 +125,8 @@ def aplica_dag(machine_list, mw_value=9999):
     # aplica la desconexion
     for ibus, id in selected_machines:
         ierr = psspy.dist_machine_trip(ibus, id)
+
+    return cumulative_to_shed
 
 
 

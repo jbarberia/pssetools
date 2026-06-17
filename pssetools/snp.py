@@ -64,7 +64,7 @@ def run(sav, snp, dyr, cc, ct, idv=None, **kwargs):
                 
     # guardo el snapshot pero antes ajusto opciones
     # TODO estas opciones deberian estar en otro lado
-    psspy.dynamics_solution_param_2([_i,_i,_i,_i,_i,_i,_i,_i],[_f,_f, 0.002,_f,_f,_f,_f,_f])
+    psspy.dynamics_solution_param_2([250,_i,_i,_i,_i,_i,_i,_i],[0.250,_f, 0.002,_f,_f,_f,_f,_f])
     
     # corre un idv para guardar canales
     if idv:
