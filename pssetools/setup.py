@@ -225,7 +225,9 @@ def run(**kwargs):
                 preseleccion.append(f)
         elif f.startswith("docs/") and incluye_docs:
             preseleccion.append(f)
-        elif f == "Makefile":
+        elif f == "main.py":
+            preseleccion.append(f)
+        elif f == "compila.sh":
             preseleccion.append(f)
 
     # 2. Selector visual de archivos
