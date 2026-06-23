@@ -78,7 +78,8 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     # corre simulacion
     with open(py) as f:
         code = f.read()
-        exec(code)
+        d = dict(locals(), **globals())
+        exec(code, d, d)
     
     # flujo postfalla
     ierr, time = psspy.dsrval("TIME")
