@@ -3,7 +3,7 @@ from . import psspy
 from . import pss_activity
 
 @pss_activity
-def run(sav, script, report, **kwargs):
+def run(sav, script, report, *args, **kwargs):
     """Executes a custom Python script and redirects PSS/E report output.
 
     Args:
@@ -15,10 +15,13 @@ def run(sav, script, report, **kwargs):
     Returns:
         int: The PSS/E activity return code.
     """
+
     ierr = psspy.t_report_output(2, report, [2, 0])
+    psspy.case(sav)
 
     with open(script) as f:
         code = f.read()
         exec(code)
     
+    psspy.t_report_output(6)
     return ierr

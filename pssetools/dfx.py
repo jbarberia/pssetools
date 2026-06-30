@@ -21,5 +21,5 @@ def run(sav, sub, mon, con, dfx, **kwargs):
     Returns:
         int: The PSS/E activity return code.
     """
-    ierr = psspy.dfax_2([1,1,0], sub, mon, con, dfx)
+    ierr = psspy.dfax_2([1,1,1], sub, mon, con, dfx)
     return ierr
