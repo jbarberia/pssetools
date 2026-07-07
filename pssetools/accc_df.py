@@ -1,36 +1,28 @@
-from __future__ import print_function
-from . import get_config
-from . import pss_activity
 import os
 import pandas as pd
-from arrbox.accc_pp import CONTINGENCY_PP
 
-@pss_activity
-def run(acc, frp, vrp, config, **kwargs):
+
+def accc_df(accfile, **kwargs):
     """Post-processes ACCC contingency analysis results.
 
-    Extracts flow and voltage data from an .acc file and saves them to
-    tab-separated reports (.frp and .vrp).
+    Extracts flow and voltage data from an .acc file and return dataframes.
 
     Args:
-        acc (str): Input ACCC results file (.acc).
-        frp (str): Output flow report file (.frp).
-        vrp (str): Output voltage report file (.vrp).
-        config (str|dict): Configuration dictionary or path to configuration file.
+        accfile (str): Input ACCC results file (.acc).
         **kwargs: Additional keyword arguments.
 
     Returns:
         int: 0 on success.
     """
-    config = get_config(config)    
-    rate = config["ARRBOX"]["RATING"]
+    from arrbox.accc_pp import CONTINGENCY_PP
+    rate = "a"
 
-    case = os.path.basename(acc).replace(".acc", "")
-    accobj = CONTINGENCY_PP(acc)
+    case = os.path.basename(accfile).replace(".acc", "")
+    accobj = CONTINGENCY_PP(accfile)
     summary = accobj.summary()    
     flow_data = []
     volt_data = []
-    
+
     for colabel in summary.colabel:
         solnobj  = accobj.solution(colabel=colabel)            
         n_interfaces = len(summary.melement) - len(solnobj.ampflow)
@@ -57,19 +49,6 @@ def run(acc, frp, vrp, config, **kwargs):
         
                     
     df_flow = pd.concat(flow_data)
-    df_flow.to_csv(
-        frp,
-        float_format=config["ARRBOX"]["NUMFMT_FLOW"],
-        index=False,
-        sep="\t"
-    )
-    
     df_volts = pd.concat(volt_data)
-    df_volts.to_csv(
-        vrp,
-        float_format=config["ARRBOX"]["NUMFMT_VOLT"],
-        index=False,
-        sep="\t"
-    )
     
-    return 0
+    return df_flow, df_volts

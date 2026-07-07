@@ -1,6 +1,4 @@
 # coding: latin-1
-from . import psse
-from . import psspy
 import re
 from collections import namedtuple
 
@@ -182,6 +180,9 @@ def extract_buses(only_in_service=True):
     Returns:
         A list of Bus namedtuples containing number, area, owner, zone, and kV.
     """
+    import psse34
+    import psspy
+
     flag = 1 if only_in_service else 2       
     ierr1, (number, area, owner, zone,) = psspy.abusint(-1, flag, ["NUMBER", "AREA", "OWNER", "ZONE"])    
     ierr2, (kv,) = psspy.abusreal(-1, flag, ["BASE"])

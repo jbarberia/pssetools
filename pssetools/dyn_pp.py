@@ -1,11 +1,8 @@
-from __future__ import print_function
-from . import get_config
-from . import pss_activity
 import os
 import pandas as pd
+import pssetools
 
 
-@pss_activity
 def run(out, ofile, config, **kwargs):
     """Post-process dynamic channel outputs.
 
@@ -23,7 +20,7 @@ def run(out, ofile, config, **kwargs):
     """
     import dyntools
 
-    config = get_config(config)
+    config = pssetools.get_config(config)
     obj = dyntools.CHNF(out)
 
     title, channels, data = obj.get_data()

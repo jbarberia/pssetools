@@ -1,17 +1,13 @@
-from __future__ import print_function
-from . import psspy
-from . import get_config
-from . import pss_activity
-import zipfile
 import tempfile
+from zipfile import ZipFile
 import os
 import re
 import io
 
 
-def _extract_zip_file(zip_file_path):
+def _extract_zip_file(zipfile):
     temp_dir = tempfile.mkdtemp()
-    with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
+    with ZipFile(zipfile, "r") as zip_ref:
         zip_ref.extractall(temp_dir)
     return temp_dir
 
@@ -26,12 +22,13 @@ def _get_contingencies(working_folder):
     return contingency_identificator
 
 
-@pss_activity
-def run(zip, folder, **kwargs):
+def accc_unzip(zipfile, folder, **kwargs):
+    import psspy
+
     if not os.path.isdir(folder):
         os.makedirs(folder)
 
-    working_folder = _extract_zip_file(zip)
+    working_folder = _extract_zip_file(zipfile)
     contingencies = _get_contingencies(working_folder)
 
     psspy.case(os.path.join(working_folder, "InitCase.sav"))
@@ -39,7 +36,7 @@ def run(zip, folder, **kwargs):
 
     for colabel, coid in contingencies:
         psspy.case(os.path.join(working_folder, "InitCase.sav"))
-        ierr = psspy.getcontingencysavedcase(zip.encode("utf-8"), coid)
+        ierr = psspy.getcontingencysavedcase(zipfile.encode("utf-8"), coid)
         psspy.save(os.path.join(folder, colabel))
 
     return 0

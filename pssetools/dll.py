@@ -1,13 +1,11 @@
-# coding: latin-1
-from __future__ import print_function
+## coding: latin-1
 import os
 import subprocess
-import sys
-
-from . import PSSE_PATH_BAT
-from . import PSSE_VERSION
-from . import get_config
-from . import psse
+#import sys
+#
+#from . import PSSE_PATH_BAT
+#from . import PSSE_VERSION
+from .utils import get_config, get_kwargs
 
 
 def run(dll, sources, config, **kwargs):
@@ -39,14 +37,13 @@ def run(dll, sources, config, **kwargs):
 
     # configuracion de version
     config = get_config(config)
-    psse_vrsn = config["DLL"]["PSSE_VERSION"]
-    ivfversion = config["DLL"]["IVF_VERSION"]
+    args = get_kwargs(psse_env_manager.create_dll, config)
+
+    psse_vrsn = config.get("psse_vrsn", 34)
+    ivfversion = config.get("useivfversion", "latest")
 
     # configuracion del PATH
-    psse_env_manager.set_local_env(psse_vrsn, useivfvrsn='latest', showprg=True)
-    os.environ['PATH'] = config["DLL"]["PATH"].replace("\n", ";")
-    os.environ['LIB'] = config["DLL"]["LIB"].replace("\n", ";")
-    os.environ['INCLUDE'] = config["DLL"]["INCLUDE"].replace("\n", ";")
+    psse_env_manager.set_local_env(psse_vrsn, useivfvrsn=ivfversion, showprg=True)
 
     # remueve archivos viejos
     if os.path.isfile(dll):

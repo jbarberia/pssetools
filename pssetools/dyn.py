@@ -1,8 +1,5 @@
-from __future__ import print_function
-from . import psspy
-from . import pss_activity
-import sys
 import os
+import sys
 
 def export_initial_conditions_suspect(filename):
     """Extracts 'INITIAL CONDITIONS SUSPECT' from a progress output file.
@@ -25,8 +22,8 @@ def export_initial_conditions_suspect(filename):
         with open(filename, "w") as f:
             f.write(initial_conditions)
    
-@pss_activity
-def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):    
+
+def run(cnv, snp, out, dll, py, debug=False, **kwargs):    
     """Executes a dynamic simulation.
 
     Loads a converted case (.cnv), applies snapshot (.snp) and user-defined 
@@ -34,12 +31,12 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     Intermediate results are saved as .cnv and .snp at T=0 and end of simulation.
 
     Args:
-        out (str): Path for the simulation output file (.out).
         cnv (str): Input converted case file (.cnv).
         snp (str): Input snapshot file (.snp).
+        out (str): Path for the simulation output file (.out).
         dll (list): List of user DLLs to add to the simulation.
         py (str): Path to the Python simulation script.
-        no_debug (bool, optional): If True, suppresses debug output on initialization failure. Defaults to False.
+        debug (bool, optional): If True, stop on suspect conditions initialization failure. Defaults to False.
         **kwargs: Additional keyword arguments.
 
     Returns:
@@ -48,16 +45,18 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     Raises:
         Exception: If loading snapshot or initialization fails.
     """
-    debug = not no_debug
+    import psse34
+    import psspy
+    psspy.psseinit()
+
     dirname = os.path.dirname(out)
     basename = os.path.basename(out).split(".")[0]
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    # abro snp con las librerias (cnv ya fue abierto por pss_activity)
+    psspy.setThrowPsseExceptions(True)
+    ierr = psspy.case(cnv)
     ierr = psspy.rstr(snp)
-    if ierr != 0:
-        raise Exception("Error loading snapshot {}: {}".format(snp, ierr))
 
     for library in dll:
         psspy.addmodellibrary(library)
@@ -67,6 +66,7 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     ierr = psspy.t_progress_output(2, t_device, [2, 0])
     
     # inicializa
+    psspy.setThrowPsseExceptions(False)
     ierr = psspy.strt_2([1, 1], out) 
     if psspy.okstrt() != 0 and debug:        
         raise Exception("Error en la inicializacion - {} {}".format(cnv, snp))
@@ -76,10 +76,18 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     sys.stdout.write("{} incializado en T=0\n".format(basename))
 
     # corre simulacion
-    with open(py) as f:
-        code = f.read()
-        d = dict(locals(), **globals())
-        exec(code, d, d)
+    locals_vars = {
+        "psspy": psspy,
+        "_i" : psspy.getdefaultint(),
+        "_f" : psspy.getdefaultreal(),
+        "_s" : psspy.getdefaultchar(),
+    }
+    if isinstance(py, str):
+        py = [py]
+    for file in py:
+        with open(file) as f:
+            code = f.read()
+            exec(code, locals_vars)
     
     # flujo postfalla
     ierr, time = psspy.dsrval("TIME")
@@ -88,4 +96,9 @@ def run(out, cnv, snp, dll, py, no_debug=False, **kwargs):
     
     psspy.progress("\n FIN SIMULACION\n")
     sys.stdout.write("{} finalizado en T={:.0f}\n".format(basename, time))
+
+    # libera t-device
+    ierr = psspy.t_progress_output(6)
+
     return 0
+

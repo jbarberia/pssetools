@@ -1,15 +1,9 @@
-from __future__ import print_function
 import os
-from . import psspy
-from . import pss_activity
+import pssetools
 
-_i = psspy.getdefaultint()
-_f = psspy.getdefaultreal()
-_s = psspy.getdefaultchar()
-
-@pss_activity
-def run(sav, snp, dyr, cc, ct, idv=None, **kwargs):
-    """Creates a PSS/E snapshot (.snp) by merging multiple dynamic files.
+def run(sav, snp, dyr, cc, ct, idv=None, config=None, **kwargs):
+    """
+    Creates a PSS/E snapshot (.snp) by merging multiple dynamic files.
 
     Loads .dyr files, generates and merges CONEC/CONET source files (.flx),
     and configures dynamic simulation parameters before saving the snapshot.
@@ -17,18 +11,29 @@ def run(sav, snp, dyr, cc, ct, idv=None, **kwargs):
     Args:
         sav (str): Input PSS/E case file (.sav).
         snp (str): Output snapshot file (.snp).
-        dyr (list): List of dynamic data files (.dyr).
-        cc (str): Path for the CONEC (.flx) source file.
-        ct (str): Path for the CONET (.flx) source file.
-        idv (str, optional): Response file to allocate channels or additional configuration. Defaults to None.
+        dyr (list of str): List of dynamic data files (.dyr).
+        cc (str): Path for the CONEC (.flx) source file to be generated.
+        ct (str): Path for the CONET (.flx) source file to be generated.
+        idv (str, optional): Response file (.idv) to allocate channels or additional configuration.
+        config (str or dict, optional): Configuration file/dict for dynamic parameters.
         **kwargs: Additional keyword arguments.
 
     Returns:
-        int: The PSS/E activity return code.
+        int: The PSS/E activity return code (ierr from saving the snapshot).
 
     Raises:
         ValueError: If no .dyr files are provided.
     """
+    import psse34
+    import psspy
+    psspy.psseinit()
+
+    psspy.case(sav)
+
+    _i = psspy.getdefaultint()
+    _f = psspy.getdefaultreal()
+    _s = psspy.getdefaultchar()
+
     # genero el primer dyr
     if len(dyr) == 0:
         raise ValueError("No hay *.dyr a cargar")
@@ -40,6 +45,7 @@ def run(sav, snp, dyr, cc, ct, idv=None, **kwargs):
     # genero los dyr restantes
     tmp_cc = cc.replace(".flx", "_tmp.flx")
     tmp_ct = ct.replace(".flx", "_tmp.flx")
+
     for dyr_file in dyr[1:]:
         psspy.dyre_add([_i,_i,_i,_i], dyr_file, tmp_cc, tmp_ct)
         
@@ -63,9 +69,17 @@ def run(sav, snp, dyr, cc, ct, idv=None, **kwargs):
     with open(ct, "w") as conet: conet.writelines(ct_lines)
                 
     # guardo el snapshot pero antes ajusto opciones
-    # TODO estas opciones deberian estar en otro lado
-    psspy.dynamics_solution_param_2([250,_i,_i,_i,_i,_i,_i,_i],[0.250,_f, 0.002,_f,_f,_f,_f,_f])
-    
+    options = [
+        "dynamics_solution_param_2",
+        "set_netfrq",
+    ]
+
+    for opt in options:
+        func = getattr(psspy, opt)
+        args = pssetools.get_kwargs(func, config)
+        if args:
+            func(**args)
+
     # corre un idv para guardar canales
     if idv:
         psspy.runrspnsfile(idv)
