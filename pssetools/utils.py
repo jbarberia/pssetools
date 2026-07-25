@@ -1,4 +1,5 @@
 import os
+import sys
 import commentjson
 import warnings
 import inspect
@@ -6,7 +7,7 @@ import inspect
 def get_config(filename=None):
     "obtener configuracion o devolver una por defecto"
     if filename == None:
-        warnings.warn("Se utiliza configuracion por defecto", UserWarning)
+        # warnings.warn("Se utiliza configuracion por defecto", UserWarning)
         dirname = os.path.dirname(os.path.abspath(__file__))
         filename = os.path.join(dirname, "config.jsonc") 
     
@@ -36,6 +37,14 @@ def get_kwargs(function, config=None):
 
     kwargs = config.get(key, {})
     return kwargs
+
+
+def set_psse_path():
+    is_64_bits = sys.maxsize > 2**32
+    if is_64_bits:
+        import psse3606
+    else:
+        set_psse_path()
 
 
 

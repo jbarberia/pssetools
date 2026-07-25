@@ -1,6 +1,7 @@
 # coding: latin-1
 import re
 from collections import namedtuple
+from pssetools.utils import set_psse_path
 
 Bus = namedtuple("Bus", ["number", "area", "owner", "zone", "kv"])
 
@@ -180,7 +181,7 @@ def extract_buses(only_in_service=True):
     Returns:
         A list of Bus namedtuples containing number, area, owner, zone, and kV.
     """
-    import psse34
+    set_psse_path()
     import psspy
 
     flag = 1 if only_in_service else 2       

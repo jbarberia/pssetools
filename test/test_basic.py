@@ -1,10 +1,9 @@
-import psse34
+import pytest
+import psse3606
 import pssetools
-from nose.tools import assert_raises
-
 
 def test_config_00():
-    ""
+    "obtener configuracion por defecto"
     config = pssetools.get_config()
     assert isinstance(config, dict)
 

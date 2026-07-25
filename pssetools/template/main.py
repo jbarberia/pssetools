@@ -3,7 +3,7 @@ from os.path import basename, dirname, isdir, isfile
 from glob import glob
 import shutil
 import subprocess
-import psse34
+import psse3606
 import psspy
 from pssetools import dfx, acc, acc_pp, acc_unzip
 from pssetools import cnv, dyn, snp, dll

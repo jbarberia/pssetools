@@ -1,2 +1,4 @@
 *.pyc
 dist/
+.vscode/*
+.pytest_cache/*

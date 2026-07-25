@@ -2,6 +2,7 @@ import os
 import argparse
 import pssetools
 import pandas as pd
+from pssetools.utils import set_psse_path
 
 
 def estatico(case, config, folder):
@@ -18,7 +19,7 @@ def estatico(case, config, folder):
             - dff (pd.DataFrame): DataFrame con los resultados de flujos.
             - dfv (pd.DataFrame): DataFrame con los resultados de tensiones.
     """
-    import psse34
+    set_psse_path()
     import psspy
     psspy.psseinit()
 

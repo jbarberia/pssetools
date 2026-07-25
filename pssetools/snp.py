@@ -1,5 +1,6 @@
 import os
 import pssetools
+from pssetools.utils import set_psse_path
 
 def run(sav, snp, dyr, cc, ct, idv=None, config=None, **kwargs):
     """
@@ -24,7 +25,7 @@ def run(sav, snp, dyr, cc, ct, idv=None, config=None, **kwargs):
     Raises:
         ValueError: If no .dyr files are provided.
     """
-    import psse34
+    set_psse_path()
     import psspy
     psspy.psseinit()
 

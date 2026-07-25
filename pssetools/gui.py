@@ -3,7 +3,6 @@ import os
 
 import Tkinter as tk
 import ttk
-from . import psse
 import psspy
 import sliderPy
 import sys

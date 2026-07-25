@@ -2,7 +2,7 @@ import os
 import sys
 import pandas as pd
 from .parse_sub import parse_sub
-from .utils import get_config, get_kwargs
+from .utils import get_config, get_kwargs, set_psse_path
 
 
 def ascc(sav, subfile, config=None, **kwargs):
@@ -22,7 +22,7 @@ def ascc(sav, subfile, config=None, **kwargs):
     Returns:
         pd.DataFrame: dataframe with results.
     """
-    import psse34
+    set_psse_path()
     import psspy
     import pssarrays
     psspy.psseinit()

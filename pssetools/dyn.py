@@ -1,5 +1,6 @@
 import os
 import sys
+from pssetools.utils import set_psse_path
 
 def export_initial_conditions_suspect(filename):
     """Extracts 'INITIAL CONDITIONS SUSPECT' from a progress output file.
@@ -45,7 +46,7 @@ def run(cnv, snp, out, dll, py, debug=False, **kwargs):
     Raises:
         Exception: If loading snapshot or initialization fails.
     """
-    import psse34
+    set_psse_path()
     import psspy
     psspy.psseinit()
 

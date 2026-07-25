@@ -1,10 +1,11 @@
 import os
 import sys
 import pssetools
+from pssetools.utils import set_psse_path
 
 
 def cortocircuito(sav, config, folder):
-    import psse34
+    set_psse_path()
     import psspy
     
     config = pssetools.get_config(config)

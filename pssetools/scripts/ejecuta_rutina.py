@@ -1,5 +1,6 @@
 import os
 import argparse
+from pssetools.utils import set_psse_path
 
 
 def ejecuta_rutina(ifile, ofile, py, **kwargs):
@@ -34,7 +35,7 @@ def ejecuta_rutina(ifile, ofile, py, **kwargs):
             ierr_list.append(ierr)
         return
     
-    import psse34
+    set_psse_path()
     import psspy
     psspy.psseinit()
     psspy.case(ifile)
