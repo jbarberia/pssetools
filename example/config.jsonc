@@ -40,7 +40,8 @@
     // CORTOCIRCUITO
     // -------------
     "pssetools.ascc": {
-        "subfile": "estudio.sub"        
+        "subfile": "estudio.sub",
+        "subsystem_name": "CORTOCIRCUITO",       
     },
     "arrbox.ascc.ascc_currents": {
         "flt3ph": 1,        // get 3 phase fault currents

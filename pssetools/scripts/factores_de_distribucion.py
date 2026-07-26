@@ -4,6 +4,7 @@ import pssetools
 import pandas as pd
 from pssetools.utils import set_psse_path
 
+
 def factores_de_distribucion(case, sub=None, mon=None, con=None, folder=None, config=None):
     """genera factores de distribucion para un caso dado
 
@@ -20,8 +21,8 @@ def factores_de_distribucion(case, sub=None, mon=None, con=None, folder=None, co
     """
 
     set_psse_path()
-    import psspy # type: ignore
-    import arrbox.dfax_pp # type: ignore
+    import psspy
+    import arrbox.dfax_pp
     psspy.psseinit()
 
     config = pssetools.get_config(config)
@@ -124,4 +125,4 @@ if __name__ == "__main__":
 
     excel_path = "{}/factores_de_distribucion.xlsx".format(folder)
     with pd.ExcelWriter(excel_path) as writer:
-        pd.concat(results).to_excel(writer, "otdf")
+        pd.concat(results).to_excel(writer, sheet_name="otdf")

@@ -23,7 +23,7 @@ def estatico(case, sub=None, mon=None, con=None, folder=None, config=None):
             - dfv (pd.DataFrame): DataFrame con los resultados de tensiones.
     """
     set_psse_path()
-    import psspy # type: ignore
+    import psspy
     psspy.psseinit()
 
     config = pssetools.get_config(config)
@@ -134,5 +134,5 @@ if __name__ == "__main__":
     dff_list, dfv_list = zip(*results)
     excel_path = "{}/resultados.xlsx".format(folder)
     with pd.ExcelWriter(excel_path) as writer:
-        pd.concat(list(dff_list)).to_excel(writer, "flujos", index=False)
-        pd.concat(list(dfv_list)).to_excel(writer, "tensiones", index=False)
+        pd.concat(list(dff_list)).to_excel(writer, sheet_name="flujos", index=False)
+        pd.concat(list(dfv_list)).to_excel(writer, sheet_name="tensiones", index=False)

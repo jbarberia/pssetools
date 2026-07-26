@@ -11,18 +11,19 @@ config = "config.jsonc"
 
 # estatico
 folder = "estatico"
-results = [estatico(case, config, folder) for case in cases]
+results = [estatico(case, folder=folder, config=config) for case in cases]
 dff, dfv = zip(*results)
 with pd.ExcelWriter("resultados.xlsx", engine="openpyxl") as writter:
-    pd.concat(dff).to_excel(writter, "flujos", index=False)
-    pd.concat(dfv).to_excel(writter, "tensiones", index=False)
+    pd.concat(dff).to_excel(writter, sheet_name="flujos", index=False)
+    pd.concat(dfv).to_excel(writter, sheet_name="tensiones", index=False)
 
 
 # cortocircuito
 folder = "cortocircuito"
-ccdf = [cortocircuito(case, config, folder) for case in cases]
+ccdf = [cortocircuito(case, folder=folder, config=config) for case in cases]
 with pd.ExcelWriter("resultados.xlsx", engine="openpyxl", mode="a") as writter:
-    pd.concat(ccdf).to_excel(writter, "cortocircuito", index=False)
+    pd.concat(ccdf).to_excel(writter, sheet_name="cortocircuito", index=False)
+
 
 
 # prepara dinamico
