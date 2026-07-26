@@ -17,8 +17,8 @@ def factores_de_distribucion(case, config=None, folder=None):
     """
 
     set_psse_path()
-    import psspy
-    import arrbox.dfax_pp
+    import psspy # type: ignore
+    import arrbox.dfax_pp # type: ignore
     psspy.psseinit()
 
     config = pssetools.get_config(config)

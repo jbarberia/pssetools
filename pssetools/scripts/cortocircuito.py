@@ -6,7 +6,7 @@ from pssetools.utils import set_psse_path
 
 def cortocircuito(case, config=None, folder=None):
     set_psse_path()
-    import psspy
+    import psspy # type: ignore
     psspy.psseinit()
     
     config = pssetools.get_config(config)

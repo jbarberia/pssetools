@@ -18,7 +18,7 @@ def run(out, ofile, config=None, **kwargs):
     Returns:
         int: 0 on success.
     """
-    import dyntools
+    import dyntools # type: ignore
 
     config = pssetools.get_config(config)
     obj = dyntools.CHNF(out)

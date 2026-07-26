@@ -20,7 +20,7 @@ def estatico(case, config=None, folder=None):
             - dfv (pd.DataFrame): DataFrame con los resultados de tensiones.
     """
     set_psse_path()
-    import psspy
+    import psspy # type: ignore
     psspy.psseinit()
 
     config = pssetools.get_config(config)
