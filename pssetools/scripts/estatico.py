@@ -25,7 +25,6 @@ def estatico(case, config, folder):
 
     config = pssetools.get_config(config)
     base = os.path.basename(case).replace(".sav", "")
-    # parent = os.path.dirname(case)
     tmp_zipfile = os.path.join(os.path.expanduser("~"), base + ".zip")
     
     if not os.path.isdir(folder):
@@ -44,12 +43,6 @@ def estatico(case, config, folder):
     accc_kwargs["accfile"] = "{}/{}.acc".format(folder, base)
     accc_kwargs["zipfile"] = tmp_zipfile     
     ierr = func(**accc_kwargs)
-
-    # zipfile = "{}/{}.zip".format(folder, base)
-    # if os.path.isfile(tmp_zipfile):    
-    #     if os.path.exists(zipfile):
-    #         os.remove(zipfile)
-    #     shutil.move(tmp_zipfile, zipfile)
 
     func = pssetools.accc_unzip
     accc_unzip_kwargs = pssetools.get_kwargs(func, config)

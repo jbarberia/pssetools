@@ -4,19 +4,21 @@ import pssetools
 from pssetools.utils import set_psse_path
 
 
-def cortocircuito(sav, config, folder):
+def cortocircuito(case, config, folder):
     set_psse_path()
     import psspy
+    psspy.psseinit()
     
     config = pssetools.get_config(config)
 
     if not os.path.isdir(folder):
         os.makedirs(folder)
 
+    psspy.case(case)
+
     func = pssetools.ascc
     kwargs = pssetools.get_kwargs(func, config)
-    
-    kwargs["sav"] = sav
+    kwargs["sav"] = case
     kwargs["config"] = config
     df = func(**kwargs)
     return df
