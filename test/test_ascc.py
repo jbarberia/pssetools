@@ -11,6 +11,7 @@ def test_ascc():
     config = get_config()
     filename = "test/files/savnw.sav"
     folder = "temp_folder"
-    config["psspy.dfax_2"]["subfile"] = "test/files/savnw.sub"
+    config["pssetools.ascc"]["subfile"] = "test/files/savnw.sub"
+    config["pssetools.ascc"]["subsystem_name"] = "WEST"
     ascc = cortocircuito(filename, config, folder)
     

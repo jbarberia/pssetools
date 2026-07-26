@@ -20,7 +20,7 @@ def cortocircuito(case, config=None, folder=None):
     func = pssetools.ascc
     kwargs = pssetools.get_kwargs(func, config)
     kwargs["sav"] = case
-    kwargs["config"] = config
+    kwargs["config"] = config    
     df = func(**kwargs)
     return df
 

@@ -5,7 +5,7 @@ from .parse_sub import parse_sub
 from .utils import get_config, get_kwargs, set_psse_path
 
 
-def ascc(sav, subfile, config=None, **kwargs):
+def ascc(sav, subfile, subsystem_name="CORTOCIRCUITO", config=None, **kwargs):
     """Runs ASCC short circuit analysis.
 
     Parses the subsystem from a .sub file, executes short circuit
@@ -23,8 +23,8 @@ def ascc(sav, subfile, config=None, **kwargs):
         pd.DataFrame: dataframe with results.
     """
     set_psse_path()
-    import psspy
-    import pssarrays
+    import psspy # type: ignore
+    import pssarrays # type: ignore
     psspy.psseinit()
     
     ierr = psspy.case(sav)
@@ -35,9 +35,12 @@ def ascc(sav, subfile, config=None, **kwargs):
     # arma subsistema
     if subfile.endswith(".sub"):
         subsystem = parse_sub(subfile)
-        buses = subsystem.get("CORTOCIRCUITO")
+        if not subsystem_name:
+            raise ValueError("No hay subsistema {} en archivo {}".format(subsystem_name, subfile))
+
+        buses = subsystem.get(subsystem_name)
         if not buses:
-            raise ValueError("No hay subsistema CORTOCIRCUITO en archivo {}".format(subfile))
+            raise ValueError("No hay subsistema {} en archivo {}".format(subsystem_name, subfile))
 
     elif subfile.endswith(".sbsxml"):
         psspy.bsysrcl(sid=0, sfile=subfile)
