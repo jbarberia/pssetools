@@ -5,14 +5,14 @@ import pandas as pd
 from pssetools.utils import set_psse_path
 
 
-def estatico(case, config, folder):
+def estatico(case, config=None, folder=None):
     """
     Corre la rutina ACCC, tabula los resultados y desempaca los zip en una carpeta.
     
     Args:
         case (str): Ruta al archivo de caso PSS/E (.sav).
-        config (str or dict): Archivo de configuracion o diccionario con parametros.
-        folder (str): Ruta al directorio donde depositar los archivos generados.
+        config (str or dict, optional): Archivo de configuracion o diccionario con parametros.
+        folder (str, optional): Ruta al directorio donde depositar los archivos generados.
 
     Returns:
         tuple: (dff, dfv) donde:
@@ -24,6 +24,8 @@ def estatico(case, config, folder):
     psspy.psseinit()
 
     config = pssetools.get_config(config)
+    folder = folder or "."
+
     base = os.path.basename(case).replace(".sav", "")
     tmp_zipfile = os.path.join(os.path.expanduser("~"), base + ".zip")
     
@@ -72,25 +74,28 @@ if __name__ == "__main__":
     
     parser.add_argument(
         "-k", "--config", 
-        required=True, 
-        help="Ruta al archivo de configuración (o nombre del diccionario local)."
+        required=False, 
+        default=None,
+        help="Ruta al archivo de configuración (o nombre del diccionario local). Opcional."
     )
     
     parser.add_argument(
         "-f", "--folder", 
-        required=True, 
+        required=False,
+        default=None,
         help="Carpeta de destino donde se depositarán los resultados."
     )
     
     args = parser.parse_args()
 
     results = []
+    folder = args.folder or "."
     for c in args.case:
-        res = estatico(c, args.config, args.folder)
+        res = estatico(c, args.config, folder)
         results.append(res)
         
     dff_list, dfv_list = zip(*results)
-    excel_path = "{}/resultados.xlsx".format(args.folder)
+    excel_path = "{}/resultados.xlsx".format(folder)
     with pd.ExcelWriter(excel_path) as writer:
         pd.concat(list(dff_list)).to_excel(writer, "flujos", index=False)
         pd.concat(list(dfv_list)).to_excel(writer, "tensiones", index=False)

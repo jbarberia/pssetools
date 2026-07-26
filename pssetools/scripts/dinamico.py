@@ -6,7 +6,8 @@ import argparse
 import pssetools
 
 
-def dinamico(cnv, snp, out, dll, py, config, folder):
+def dinamico(cnv, snp, out, dll, py, config=None, folder=None):
+    folder = folder or "."
     
     # redirige todo a folder
     out = os.path.basename(out)
@@ -63,13 +64,15 @@ if __name__ == "__main__":
     
     parser.add_argument(
         "-k", "--config", 
-        required=True, 
-        help="Archivo o diccionario de configuración."
+        required=False, 
+        default=None,
+        help="Archivo o diccionario de configuración (opcional)."
     )
     
     parser.add_argument(
         "-f", "--folder", 
-        required=True, 
+        required=False, 
+        default=None,
         help="Carpeta de destino donde se depositarán los resultados."
     )
     

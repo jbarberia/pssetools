@@ -3,7 +3,7 @@ import pandas as pd
 import pssetools
 
 
-def run(out, ofile, config, **kwargs):
+def run(out, ofile, config=None, **kwargs):
     """Post-process dynamic channel outputs.
 
     Exports channels from a PSS/E dynamic output file to a tab-separated file

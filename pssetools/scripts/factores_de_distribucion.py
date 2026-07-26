@@ -4,13 +4,13 @@ import pssetools
 import pandas as pd
 from pssetools.utils import set_psse_path
 
-def factores_de_distribucion(case, config, folder):
+def factores_de_distribucion(case, config=None, folder=None):
     """genera factores de distribucion para un caso dado
 
     Args:
         case (str): Ruta al archivo de caso PSS/E (.sav).
-        config (str or dict): Archivo de configuracion o diccionario con parametros.
-        folder (str): Ruta al directorio donde depositar los archivos generados.
+        config (str or dict, optional): Archivo de configuracion o diccionario con parametros.
+        folder (str, optional): Ruta al directorio donde depositar los archivos generados.
 
     Returns:
         pd.DataFrame: Dataframe con los factores de distribucion
@@ -22,6 +22,7 @@ def factores_de_distribucion(case, config, folder):
     psspy.psseinit()
 
     config = pssetools.get_config(config)
+    folder = folder or "."
     base = os.path.basename(case).replace(".sav", "")
 
     if not os.path.isdir(folder):
@@ -56,37 +57,34 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-c",
-        "--case",
+        "-c", "--case",
         nargs="+", 
         required=True,
-        help="Ruta al archivo (o archivos) .sav separados por espacio.",
+        help="Ruta al archivo (o archivos) .sav separados por espacio."
     )
 
     parser.add_argument(
-        "-k",
-        "--config",
-        required=True,
-        help="Ruta al archivo de configuración (o nombre del diccionario local).",
+        "-k", "--config",
+        required=False,
+        default=None,
+        help="Ruta al archivo de configuración (o nombre del diccionario local)."
     )
 
     parser.add_argument(
-        "-f",
-        "--folder",
-        required=True,
-        help="Carpeta de destino donde se depositarán los resultados.",
+        "-f", "--folder",
+        required=False,
+        default=None,
+        help="Carpeta de destino donde se depositarán los resultados."
     )
 
     args = parser.parse_args()
 
     results = []
+    folder = args.folder or "."
     for c in args.case:
-        res = factores_de_distribucion(c, args.config, args.folder)
+        res = factores_de_distribucion(c, args.config, folder)
         results.append(res)
 
-    excel_path = "{}/factores_de_distribucion.xlsx".format(args.folder)
+    excel_path = "{}/factores_de_distribucion.xlsx".format(folder)
     with pd.ExcelWriter(excel_path) as writer:
         pd.concat(results).to_excel(writer, "otdf")
-
-
-
