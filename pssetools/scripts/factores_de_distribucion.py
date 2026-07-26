@@ -4,13 +4,16 @@ import pssetools
 import pandas as pd
 from pssetools.utils import set_psse_path
 
-def factores_de_distribucion(case, config=None, folder=None):
+def factores_de_distribucion(case, sub=None, mon=None, con=None, folder=None, config=None):
     """genera factores de distribucion para un caso dado
 
     Args:
         case (str): Ruta al archivo de caso PSS/E (.sav).
-        config (str or dict, optional): Archivo de configuracion o diccionario con parametros.
+        sub (str, optional): Ruta al archivo de subsistema (.sub).
+        mon (str, optional): Ruta al archivo de monitoreo (.mon).
+        con (str, optional): Ruta al archivo de contingencias (.con).
         folder (str, optional): Ruta al directorio donde depositar los archivos generados.
+        config (str or dict, optional): Archivo de configuracion o diccionario con parametros.
 
     Returns:
         pd.DataFrame: Dataframe con los factores de distribucion
@@ -32,6 +35,12 @@ def factores_de_distribucion(case, config=None, folder=None):
 
     func = psspy.dfax_2
     dfax_kwargs = pssetools.get_kwargs(func, config)
+    if sub:
+        dfax_kwargs["subfile"] = sub
+    if mon:
+        dfax_kwargs["monfile"] = mon
+    if con:
+        dfax_kwargs["confile"] = con
     dfxfile = dfax_kwargs["dfxfile"] = "{}/{}.dfx".format(folder, base)
     ierr = func(**dfax_kwargs)
 
@@ -64,10 +73,24 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-k", "--config",
+        "-s", "--sub",
         required=False,
         default=None,
-        help="Ruta al archivo de configuración (o nombre del diccionario local)."
+        help="Ruta al archivo de subsistema (.sub). Opcional."
+    )
+
+    parser.add_argument(
+        "-m", "--mon",
+        required=False,
+        default=None,
+        help="Ruta al archivo de monitoreo (.mon). Opcional."
+    )
+
+    parser.add_argument(
+        "-n", "--con",
+        required=False,
+        default=None,
+        help="Ruta al archivo de contingencias (.con). Opcional."
     )
 
     parser.add_argument(
@@ -77,12 +100,26 @@ if __name__ == "__main__":
         help="Carpeta de destino donde se depositarán los resultados."
     )
 
+    parser.add_argument(
+        "-k", "--config",
+        required=False,
+        default=None,
+        help="Ruta al archivo de configuración (o nombre del diccionario local)."
+    )
+
     args = parser.parse_args()
 
     results = []
     folder = args.folder or "."
     for c in args.case:
-        res = factores_de_distribucion(c, args.config, folder)
+        res = factores_de_distribucion(
+            c,
+            sub=args.sub,
+            mon=args.mon,
+            con=args.con,
+            folder=folder,
+            config=args.config
+        )
         results.append(res)
 
     excel_path = "{}/factores_de_distribucion.xlsx".format(folder)

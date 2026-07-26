@@ -5,14 +5,17 @@ import pandas as pd
 from pssetools.utils import set_psse_path
 
 
-def estatico(case, config=None, folder=None):
+def estatico(case, sub=None, mon=None, con=None, folder=None, config=None):
     """
     Corre la rutina ACCC, tabula los resultados y desempaca los zip en una carpeta.
     
     Args:
         case (str): Ruta al archivo de caso PSS/E (.sav).
-        config (str or dict, optional): Archivo de configuracion o diccionario con parametros.
+        sub (str, optional): Ruta al archivo de subsistema (.sub).
+        mon (str, optional): Ruta al archivo de monitoreo (.mon).
+        con (str, optional): Ruta al archivo de contingencias (.con).
         folder (str, optional): Ruta al directorio donde depositar los archivos generados.
+        config (str or dict, optional): Archivo de configuracion o diccionario con parametros.
 
     Returns:
         tuple: (dff, dfv) donde:
@@ -36,6 +39,12 @@ def estatico(case, config=None, folder=None):
     
     func = psspy.dfax_2
     dfax_kwargs = pssetools.get_kwargs(func, config)
+    if sub:
+        dfax_kwargs["subfile"] = sub
+    if mon:
+        dfax_kwargs["monfile"] = mon
+    if con:
+        dfax_kwargs["confile"] = con
     dfax_kwargs["dfxfile"] = "{}/{}.dfx".format(folder, base)
     ierr = func(**dfax_kwargs)
 
@@ -73,10 +82,24 @@ if __name__ == "__main__":
     )
     
     parser.add_argument(
-        "-k", "--config", 
-        required=False, 
+        "-s", "--sub",
+        required=False,
         default=None,
-        help="Ruta al archivo de configuración (o nombre del diccionario local). Opcional."
+        help="Ruta al archivo de subsistema (.sub). Opcional."
+    )
+    
+    parser.add_argument(
+        "-m", "--mon",
+        required=False,
+        default=None,
+        help="Ruta al archivo de monitoreo (.mon). Opcional."
+    )
+    
+    parser.add_argument(
+        "-n", "--con",
+        required=False,
+        default=None,
+        help="Ruta al archivo de contingencias (.con). Opcional."
     )
     
     parser.add_argument(
@@ -86,12 +109,26 @@ if __name__ == "__main__":
         help="Carpeta de destino donde se depositarán los resultados."
     )
     
+    parser.add_argument(
+        "-k", "--config", 
+        required=False, 
+        default=None,
+        help="Ruta al archivo de configuración (o nombre del diccionario local). Opcional."
+    )
+    
     args = parser.parse_args()
 
     results = []
     folder = args.folder or "."
     for c in args.case:
-        res = estatico(c, args.config, folder)
+        res = estatico(
+            c,
+            sub=args.sub,
+            mon=args.mon,
+            con=args.con,
+            folder=folder,
+            config=args.config
+        )
         results.append(res)
         
     dff_list, dfv_list = zip(*results)
@@ -99,4 +136,3 @@ if __name__ == "__main__":
     with pd.ExcelWriter(excel_path) as writer:
         pd.concat(list(dff_list)).to_excel(writer, "flujos", index=False)
         pd.concat(list(dfv_list)).to_excel(writer, "tensiones", index=False)
-        
