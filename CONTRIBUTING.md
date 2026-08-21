@@ -1,39 +1,69 @@
-# Contribuyendo a pssetools
+# Guía de Contribución para pssetools
 
-## Configuración del Desarrollador
-1. **Clonar e instalar:**
-   ```bash
-   git clone https://github.com/User/pssetools.git
-   cd pssetools   
-   ```
-2. **Estándar:** Utiliza Python 2.7 (compatible con PSS/E 34).
-3. **Docstrings:** Todas las funciones nuevas deben seguir el **estilo de Google**.
+Gracias por tu interés en contribuir a **pssetools**. El objetivo de este proyecto es construir una suite estandarizada y fácil de usar.
 
-## Añadir una Nueva Actividad
-Para añadir una nueva actividad de PSS/E (ej: OPF, GIC):
+## 🐛 Reportar Errores o Solicitar Mejoras
 
-1. **Crear un nuevo módulo:** en `pssetools/` (ej: `pssetools/opf.py`).
-2. **Usar el decorador `@pss_activity`:** 
-   El decorador `pssetools.pss_activity` gestiona tareas comunes:
-   - Carga automáticamente el caso `.sav` o `.cnv` antes de que se ejecute la función.
-   - Captura excepciones y asegura que la salida de PSS/E se redirija de nuevo a la pantalla si fue capturada.
-   - Verifica el código de retorno de la actividad y lanza una excepción en caso de fallo (si el valor de retorno es un entero distinto de cero).
+Si encuentras un error o tienes una idea para mejorar la herramienta, abre un **Issue** en GitHub. Por favor incluye:
+* Versión de PSS®E (ej. v34, v36).
+* Versión de Python.
+* El mensaje de error completo (Traceback).
+* Pasos para reproducir el problema.
 
-   ```python
-   from pssetools import pss_activity
-   import psspy
+## 💻 ¿Cómo crear un nuevo módulo (Programa)?
 
-   @pss_activity
-   def run(sav, output_file, **kwargs):
-       ierr = psspy.my_psse_activity(output_file)
-       return ierr
-   ```
+La gran ventaja de esta arquitectura es que **no necesitas modificar la interfaz gráfica** para añadir una nueva herramienta. Solo tienes que crear un archivo en el directorio de programas siguiendo la nomenclatura `XX_nombre.py`.
 
-3. **Registrar en la CLI:** Añade el comando al parser en `pssetools/cli.py`.
-4. **Actualizar Configuración:** Añade parámetros de configuración por defecto a `pssetools/config.cfg` si la actividad requiere ajustes específicos.
+Tu clase debe heredar de `BaseProgram` y definir dos métodos fundamentales: `get_parameters()` y `run()`.
 
-## Manejo de Configuración
-Utiliza siempre `pssetools.get_config()` para obtener los ajustes. Esto asegura que los archivos de configuración proporcionados por el usuario (vía `--config`) se fusionen correctamente con los valores por defecto del sistema.
+### Plantilla Básica:
 
-## Reportar Problemas
-Por favor, utiliza el rastreador de problemas (Issues) de GitHub para informar errores o solicitar nuevas funcionalidades.
+```python
+# coding: latin-1
+"""
+Nombre de la Herramienta
+------------------------
+Documentación que aparecerá en el panel lateral de la GUI. Explica
+qué hace este script y qué parámetros necesita.
+"""
+from pssegui.programs import BaseProgram
+
+class MiNuevoPrograma(BaseProgram):
+    
+    def get_parameters(self):
+        """Define los campos que aparecerán en la GUI."""
+        return [
+            {
+                "name": "case",               # Nombre de la variable
+                "label": "Caso base (.sav):", # Texto en la GUI
+                "type": "file",               # Tipo (file, multi_file, bool, etc.)
+                "default": "",
+                "editable": True
+            },
+            {
+                "name": "do_something",
+                "label": "Aplicar corrección",
+                "type": "bool",
+                "default": True
+            }
+        ]
+
+    def run(self, parsed_params):
+        """Punto de entrada cuando se presiona 'Run'."""
+        self.logica_principal(**parsed_params)
+
+    def logica_principal(self, case, do_something, output_dir=".", temp_dir="."):
+        # Inicialización de PSS/E
+        psspy = self.psspy
+        psspy.psseinit()
+        
+        # Cargar caso
+        ierr = psspy.case(case)
+        if ierr != 0:
+            print("Error cargando el caso.")
+            return
+            
+        # ... Tu lógica aquí ...
+        print(f"Ejecutando en {output_dir}")
+
+```

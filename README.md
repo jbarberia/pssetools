@@ -1,98 +1,50 @@
 # pssetools
 
-**pssetools** es una utilidad de línea de comandos (CLI) y GUI para automatizar actividades de PSS/E (v34/v36), incluyendo ACCC, ASCC, simulaciones dinámicas y compilación de DLLs de modelos de usuario. Simplifica los flujos de trabajo complejos de PSS/E proporcionando una interfaz moderna y asignación automática de archivos.
+[![Python Version](https://img.shields.io/badge/python-3.7%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub issues](https://img.shields.io/github/issues/jbarberia/pssetools)](https://github.com/jbarberia/pssetools/issues)
 
-## Características
-- **Análisis de Contingencias ACCC:** Ejecuta y procesa resultados de contingencias.
-- **Cortocircuito ASCC:** Automatiza reportes de cortocircuito para varios tipos de fallas (3PH, LG, LL, LLG).
-- **Simulación Dinámica:** Gestiona snapshots (.snp), casos convertidos (.cnv) y ejecuciones en el dominio del tiempo con scripts de eventos personalizados.
-- **Post-procesamiento Dinámico:** Convierte archivos de salida (.out) a CSV de canales.
-- **DLLs de Usuario:** Compila modelos de usuario utilizando las herramientas del entorno PSSE (Intel oneAPI, MSVC).
-- **Asignación Automática:** Detecta y asigna automáticamente archivos de entrada basados en sus extensiones (.sav, .dyr, .sub, etc.).
-- **Asistente de Configuración (GUI):** Genera archivos de subsistema (.sub), monitoreo (.mon), contingencias (.con) y canales (.idv) directamente desde diagramas SLD de PSS/E.
-- **Configuración del Espacio de Trabajo:** Inicializa una estructura de proyecto estándar con plantillas, un Makefile y organización de carpetas.
+**pssetools** es una colección de módulos, scripts y utilidades en Python para automatizar, analizar y extender las capacidades de Siemens PSS®E. Este proyecto busca simplificar tareas repetitivas como la ejecución de flujos de carga, simulaciones dinámicas y la extracción/procesamiento de resultados.
 
-## Requisitos Previos
-- **Python:** 32-bit para PSS/E 34 o 64-bit para PSS/E 36.
-- **PSS/E:** Versión 34 (32-bit) o 36 (64-bit) instalado y en el PATH del sistema.
-- **Dependencias:** `pandas`, `Tkinter` (incluido en Python 2.7 estándar).
+## 🚀 Características principales
 
-## Instalación
+* **Automatización:** Scripts listos para ejecutar simulaciones masivas.
+* **Extracción de datos:** Convierte los resultados de PSS®E (.sav, .out) a formatos manejables (Pandas DataFrames, CSV, Excel).
+* **Gestión de la API:** Funciones envolventes (*wrappers*) que facilitan la inicialización de `psspy` y la configuración del entorno.
 
-### Para Usuarios
-Instala el paquete directamente desde el repositorio:
-```bash
-git clone https://github.com/User/pssetools.git
-cd pssetools
-make install
-```
+## 📋 Requisitos previos
 
-## Inicio Rápido (CLI)
+Para utilizar esta librería, es **estrictamente necesario** contar con:
 
-### 1. Inicializar Espacio de Trabajo
-Crea la estructura de carpetas estándar (`build/`, `log/`, `results/`) y copia las plantillas:
-```bash
-pssetools setup
-```
+1. Una instalación válida y con licencia de **Siemens PSS®E** (v34 o v36 recomendadas).
+2. **Python** compatible con tu versión de PSS®E (por ejemplo, Python 2.7 para versiones antiguas, o Python 3.14 para PSS®E 36).
+3. Dependencias de Python (listadas en `requirements.txt`).
 
-### 2. Análisis ACCC
-Ejecuta ACCC y procesa los resultados en reportes:
-```bash
-# Ejecutar ACCC
-pssetools acc case.sav estudio.sub estudio.mon estudio.con --acc results.acc
-
-# Post-procesar a reportes CSV
-pssetools acc-pp results.acc --frp flow_report.csv --vrp volt_report.csv
-```
-
-### 3. Cortocircuito
-```bash
-pssetools ascc --sav case.sav --sub estudio.sub --report fault_study.scf
-```
-
-### 4. Simulación Dinámica
-Construye un snapshot y ejecuta una simulación con un script de eventos personalizado:
-```bash
-# Crear Snapshot
-pssetools snp --sav case.sav --dyr data.dyr --snp snapshot.snp
-
-# Ejecutar simulación
-pssetools dyn --cnv case.cnv --snp snapshot.snp --out results.out --py event.py
-
-# Post-procesar canales a CSV
-pssetools dyn-pp results.out --ofile channels.csv
-```
-
-### 5. Automatización (Makefile)
-El espacio de trabajo inicializado con `pssetools setup` incluye un `Makefile` para ejecutar todos los estudios en modo lote:
-```bash
-make estatico       # Todos los análisis de contingencias
-make cortocircuito  # Todos los reportes de cortocircuito
-make dinamico       # Todas las corridas de estabilidad transitoria
-```
-
-## Asistente de Configuración GUI
-La GUI te permite seleccionar elementos en un diagrama SLD (Slider) de PSS/E y generar automáticamente los archivos de configuración necesarios.
-
-**Para lanzar la GUI:**
-```bash
-pssetools gui
-```
-- **Pestañas:** Gestiona `.sub`, `.mon`, `.con` y `.idv` (canales) por separado.
-- **Atajos:**
-  - `Ctrl+S`: Guardar pestaña actual.
-  - `Ctrl+Shift+S`: Guardar todas las pestañas con un nombre base.
-  - `Ctrl+Tab`: Cambiar de pestaña.
-  - `Alt+1`: Generar contenido a partir de los elementos seleccionados en el SLD.
-
-## Configuración
-Las actividades se controlan a través de `config.cfg`. Puedes especificar un archivo de configuración personalizado usando la bandera `--config` para sobrescribir los valores por defecto.
+## 🛠️ Instalación
 
 ```bash
-pssetools acc case.sav --config custom_settings.cfg
+C:\python27\python.exe -m pip install pandas openpyxl
+C:\python27\python.exe -m pip install git+https://github.com/jbarberia/pssetools
+
+C:\python314\python.exe -m pip install pandas openpyxl PyMuPDF
+C:\python314\python.exe -m pip install git+https://github.com/jbarberia/pssetools
 ```
 
-## Documentación
-- [Guía de Configuración](docs/CONFIG_GUIDE.md) - Cómo personalizar las actividades de PSS/E mediante archivos .cfg
-- [Referencia de API (Interna)](docs/docs/GEMINI.md) - Guía para LLMs y flujos de trabajo automatizados
-- [Contribución](CONTRIBUTING.md)
+## 📋 Requisitos
+
+* **Siemens PSS®E** con licencia válida (v33, v34 o v35).
+* **Python**: Debe coincidir con el intérprete de tu versión de PSS®E (Python 2.7 o Python 3.x).
+* **Librerías externas:** (Instalar vía `pip`)
+  * `pandas` (para exportación de resultados a Excel).
+  * `openpyxl` (motor de Excel para pandas).
+  * `PyMuPDF` (para corrección y recorte de SLDs a PDF).
+
+
+## ¿Como se usa?
+
+En la termina interactiva del PSSE poner:
+
+```
+import pssetools
+pssetools.gui()
+```
