@@ -48,3 +48,5 @@ En la termina interactiva del PSSE poner:
 import pssetools
 pssetools.gui()
 ```
+
+![assets/gui.png](assets/gui.png)
