@@ -5,18 +5,21 @@ import os
 
 class WorkspaceState(object):
     def __init__(self):
+        self.working_dir = "."
         self.output_dir = os.path.expanduser(os.path.join("~", "Desktop" ,"output"))
         self.temp_dir   = os.path.expanduser(os.path.join("~", "Desktop" ,"temp"))
 
 
     def to_dict(self):
         return {
+            "working_dir": self.working_dir,
             "output_dir": self.output_dir,
             "temp_dir": self.temp_dir
         }
 
 
     def from_dict(self, data):
+        self.working_dir = data.get("working_dir", self.working_dir)
         self.output_dir = data.get("output_dir", self.output_dir)
         self.temp_dir = data.get("temp_dir", self.temp_dir)
 
@@ -25,6 +28,7 @@ class WorkspaceState(object):
         for directory in (self.output_dir, self.temp_dir):
             if directory and not os.path.exists(directory):
                 os.makedirs(directory)
+        os.chdir(self.working_dir)
 
 
 class UIState(object):

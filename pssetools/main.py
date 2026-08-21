@@ -267,6 +267,7 @@ class PSSEAutomationApp(object):
         self.refresh_current_program()
 
 
+
     def refresh_current_program(self):
         program_name = self.get_selected_program_name()
         if not program_name:              
@@ -509,10 +510,12 @@ class PSSEAutomationApp(object):
             tk.Button(dlg, text="...", command=lambda: self._browse_directory(entry)).grid(row=row_idx, column=2, padx=5)
             return entry
 
-        out_entry = add_path_row(0, "Output Directory:", self.state.workspace.output_dir)
-        temp_entry = add_path_row(1, "Temp Directory:", self.state.workspace.temp_dir)
+        cwd_entry = add_path_row(0, "Working Directory:", self.state.workspace.working_dir)
+        out_entry = add_path_row(1, "Output Directory:", self.state.workspace.output_dir)
+        temp_entry = add_path_row(2, "Temp Directory:", self.state.workspace.temp_dir)
         
         def save_and_close():
+            self.state.workspace.working_dir = cwd_entry.get().strip()
             self.state.workspace.output_dir = out_entry.get().strip()
             self.state.workspace.temp_dir = temp_entry.get().strip()
             dlg.destroy()
