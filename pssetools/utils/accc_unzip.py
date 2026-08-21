@@ -1,0 +1,45 @@
+# coding: latin-1
+import tempfile
+from zipfile import ZipFile
+import os
+import re
+import io
+
+
+def _extract_zip_file(zipfile):
+    temp_dir = tempfile.mkdtemp()
+    with ZipFile(zipfile, "r") as zip_ref:
+        zip_ref.extractall(temp_dir)
+    return temp_dir
+
+
+def _get_contingencies(working_folder):
+    with io.open(os.path.join(working_folder, "Names.phy"), encoding="latin-1") as f:
+        file_content = f.read()
+    strings = re.findall(r"[^\x00-\x1F\x7F-\xFF]+", file_content)[1:]
+    contingency_identificator = [
+        (label, isv.strip()) for label, isv in zip(strings[::2], strings[1::2])
+    ]
+    return contingency_identificator
+
+
+def accc_unzip(zipfile, folder, **kwargs):
+    import psspy
+    psspy.psseinit()
+
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    basename = os.path.basename(folder)
+    
+    working_folder = _extract_zip_file(zipfile)
+    contingencies = _get_contingencies(working_folder)
+
+    psspy.case(os.path.join(working_folder, "InitCase.sav"))
+    psspy.save(os.path.join(folder, basename))
+
+    for colabel, coid in contingencies:
+        psspy.case(os.path.join(working_folder, "InitCase.sav"))
+        ierr = psspy.getcontingencysavedcase(zipfile.encode("utf-8"), coid)
+        psspy.save(os.path.join(folder, "{}_{}".format(basename, colabel)))
+
+    return 0
