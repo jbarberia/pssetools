@@ -2,4 +2,3 @@
 dist/
 .vscode/*
 .pytest_cache/*
-example/*

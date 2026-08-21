@@ -1,30 +1,20 @@
-import warnings
+# Parche para entornos embebidos de PSSE donde sys.argv no existe
+import sys
+if not hasattr(sys, 'argv'):
+    sys.argv = ['']
 
-from .utils import get_config, get_kwargs
+try:
+    import tkinter as tk    
+except ImportError:
+    import Tkinter as tk
 
-# estatico
-from .accc_df import accc_df
-from .accc_unzip import accc_unzip
+import programs
+from main import PSSEAutomationApp
 
-# cortocircuito
-from .ascc import ascc
+def gui():
+    root = tk.Tk()
+    app = PSSEAutomationApp(root)
+    root.mainloop()
 
-# dinamico
-from .snp import run as snp
-from .dll import run as dll
-from .dyn import run as dyn
-from .dyn_pp import run as dyn_pp
-
-__all__ = [
-    "accc_df",
-    "accc_unzip",
-    "ascc",
-    "snp",
-    "dll",
-    "dyn",
-    "dyn_pp",
-]
-
-for name in __all__:
-    globals()[name].__module__ = __name__
-
+if __name__ == "__main__":
+    gui()
