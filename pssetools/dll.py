@@ -1,7 +1,7 @@
 ## coding: latin-1
 import os
 import subprocess
-#import sys
+import sys
 #
 #from . import PSSE_PATH_BAT
 #from . import PSSE_VERSION

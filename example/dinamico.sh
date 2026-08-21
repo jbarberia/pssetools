@@ -1,5 +1,5 @@
 
-dinamico="python -m pssetools.scripts.dinamico"
+dinamico="c:/python27/python.exe -m pssetools.scripts.dinamico"
 cfg="config.jsonc"
 snp="dinamico/snapshot.snp"
 dll="$(ls */*.dll -1 | xargs)"

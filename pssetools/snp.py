@@ -2,7 +2,7 @@ import os
 import pssetools
 from pssetools.utils import set_psse_path
 
-def run(sav, snp, dyr, cc, ct, idv=None, config=None, **kwargs):
+def run(sav, snp, dyr, conec, conet, idv=None, config=None, **kwargs):
     """
     Creates a PSS/E snapshot (.snp) by merging multiple dynamic files.
 
@@ -38,14 +38,14 @@ def run(sav, snp, dyr, cc, ct, idv=None, config=None, **kwargs):
     # genero el primer dyr
     if len(dyr) == 0:
         raise ValueError("No hay *.dyr a cargar")
-    psspy.dyre_new([1,1,1,1], dyr[0], cc, ct, "")
+    psspy.dyre_new([1,1,1,1], dyr[0], conec, conet, "")
 
-    with open(cc, "r") as conec: cc_lines = conec.readlines()
-    with open(ct, "r") as conet: ct_lines = conet.readlines()
+    with open(conec, "r") as conec: cc_lines = conec.readlines()
+    with open(conet, "r") as conet: ct_lines = conet.readlines()
 
     # genero los dyr restantes
-    tmp_cc = cc.replace(".flx", "_tmp.flx")
-    tmp_ct = ct.replace(".flx", "_tmp.flx")
+    tmp_cc = conec.replace(".flx", "_tmp.flx")
+    tmp_ct = conet.replace(".flx", "_tmp.flx")
 
     for dyr_file in dyr[1:]:
         psspy.dyre_add([_i,_i,_i,_i], dyr_file, tmp_cc, tmp_ct)
@@ -66,8 +66,8 @@ def run(sav, snp, dyr, cc, ct, idv=None, config=None, **kwargs):
         if os.path.exists(tmp_cc): os.remove(tmp_cc)
         if os.path.exists(tmp_ct): os.remove(tmp_ct)
         
-    with open(cc, "w") as conec: conec.writelines(cc_lines)
-    with open(ct, "w") as conet: conet.writelines(ct_lines)
+    with open(conec, "w") as conec: conec.writelines(cc_lines)
+    with open(conet, "w") as conet: conet.writelines(ct_lines)
                 
     # guardo el snapshot pero antes ajusto opciones
     options = [

@@ -44,7 +44,7 @@ def set_psse_path():
     if is_64_bits:
         import psse3606
     else:
-        set_psse_path()
+        import psse34
 
 
 
