@@ -10,7 +10,7 @@ def run(out, ofile, config=None, **kwargs):
     or an Excel workbook depending on the output extension.
 
     Args:
-        out (str): Input dynamic channel output file (.out).
+        out (str): Input dynamic channel output file (.outx).
         ofile (str): Output file path (.tsv or .xlsx).
         config (str|dict): Configuration dictionary or path to configuration file.
         **kwargs: Additional keyword arguments.

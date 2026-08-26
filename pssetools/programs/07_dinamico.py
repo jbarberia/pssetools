@@ -12,6 +12,7 @@ import os
 import shutil
 import sys
 import re
+import time
 from pssegui.programs import BaseProgram
 
 class DynamicSimulationProgram(BaseProgram):
@@ -89,6 +90,8 @@ class DynamicSimulationProgram(BaseProgram):
 
     def _run_single_simulation(self, psspy, sav, snp, dlls, convload, script, output_dir, debug, overwrite):
         """Lógica central de simulación dinámica para un único caso."""
+
+        t0 = time.time()
         
         sav_basename, _ = os.path.splitext(os.path.basename(sav))
         py_basename, _ = os.path.splitext(os.path.basename(script))
@@ -99,7 +102,7 @@ class DynamicSimulationProgram(BaseProgram):
             shutil.rmtree(output_dir)
 
         os.makedirs(output_dir)
-        out_file = os.path.join(output_dir, basename + ".out")
+        out_file = os.path.join(output_dir, basename + ".outx")
 
         # Redirigir progreso a archivo .pdv temporal/permanente
         pdv_file = os.path.join(output_dir, basename + ".pdv")
@@ -161,9 +164,12 @@ class DynamicSimulationProgram(BaseProgram):
         ierr, final_time = psspy.dsrval("TIME")
         psspy.save(os.path.join(output_dir, basename + "_T{:.0f}.cnv".format(final_time)))
         psspy.snap(sfile=os.path.join(output_dir, basename + "_T{:.0f}.snp".format(final_time)))
+
+        t1 = time.time()
         
-        psspy.progress("\n FIN SIMULACION\n")
-        sys.stdout.write("{} finalizado en T={:.0f}\n".format(basename, final_time))
+        psspy.progress("\nFIN SIMULACION\n")
+        psspy.progress("{} finalizado en T={:.0f}\n".format(basename, final_time))
+        psspy.progress("Elapsed time {:.3f} s\n".format(t1 - t0))
 
         # Liberar salida y procesar condiciones sospechosas
         psspy.t_progress_output(6)
