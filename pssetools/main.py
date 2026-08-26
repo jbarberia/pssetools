@@ -2,7 +2,7 @@
 """
 PSS/E Automation Suite
 -----------------------
-Interfaz gr√°fica (Tkinter) para descubrir, configurar y ejecutar programas
+Interfaz gr·fica (Tkinter) para descubrir, configurar y ejecutar programas
 ubicados en el paquete `programs`. Compatible con Python 2 y 3.
 """
 
@@ -26,14 +26,14 @@ from state import ApplicationState
 class PSSEAutomationApp(object):
 
     # ------------------------------------------------------------------
-    # INICIALIZACI√ìN / CONSTRUCCI√ìN DE LA VENTANA PRINCIPAL
+    # INICIALIZACI”N / CONSTRUCCI”N DE LA VENTANA PRINCIPAL
     # ------------------------------------------------------------------
     def __init__(self, root):    
         self.state = ApplicationState()
         self.param_entries = {}
         self.current_program_name = None
 
-        # --- Interfaz gr√°fica ---
+        # --- Interfaz gr·fica ---
         self.root = root
         self.root.title("PSSE Automation")
         self.root.geometry("950x640")
@@ -42,7 +42,7 @@ class PSSEAutomationApp(object):
         self._bind_hotkeys()
         self._build_main_layout()
 
-        # --- Descubrimiento din√°mico de programas ---
+        # --- Descubrimiento din·mico de programas ---
         base_dir = os.path.dirname(os.path.abspath(__file__))
         test_dir = os.path.abspath(os.path.join(base_dir, "..", "test"))
         
@@ -60,14 +60,14 @@ class PSSEAutomationApp(object):
     def _monitor_cwd(self):
         """
         Consulta el directorio de trabajo (CWD) actual de PSS/E cada 1000ms.
-        As√≠ la interfaz siempre muestra d√≥nde est√° parada la consola realmente.
+        AsÌ la interfaz siempre muestra dÛnde est· parada la consola realmente.
         """
         try:
             current_cwd = os.getcwd()
             self.cwd_var.set(current_cwd)            
         except Exception:
             pass
-        # Reprogramar esta funci√≥n para ejecutarse en 1 segundo (1000 ms)
+        # Reprogramar esta funciÛn para ejecutarse en 1 segundo (1000 ms)
         self.root.after(1000, self._monitor_cwd)
 
 
@@ -106,7 +106,7 @@ class PSSEAutomationApp(object):
 
 
     # ------------------------------------------------------------------
-    # CONSTRUCCI√ìN DE LA INTERFAZ GR√ÅFICA (UI)
+    # CONSTRUCCI”N DE LA INTERFAZ GR¡FICA (UI)
     # ------------------------------------------------------------------
     def _build_menu_bar(self):
         menubar = tk.Menu(self.root)
@@ -145,7 +145,7 @@ class PSSEAutomationApp(object):
         self.root.rowconfigure(1, weight=0) # Fila para la barra inferior
         self.root.columnconfigure(0, weight=1)
         
-        # --- ZONA SUPERIOR: Aplicaci√≥n Principal ---
+        # --- ZONA SUPERIOR: AplicaciÛn Principal ---
         main_frame = tk.Frame(self.root)
         main_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         main_frame.rowconfigure(0, weight=1)
@@ -165,7 +165,7 @@ class PSSEAutomationApp(object):
         self.program_listbox.bind("<Up>", self.on_listbox_arrow_key)
         self.program_listbox.bind("<Down>", self.on_listbox_arrow_key)
         
-        # Panel Derecho: documentaci√≥n + par√°metros + bot√≥n Run
+        # Panel Derecho: documentaciÛn + par·metros + botÛn Run
         right_outer_frame = tk.Frame(main_frame)
         right_outer_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
         right_outer_frame.rowconfigure(0, weight=1)
@@ -222,7 +222,7 @@ class PSSEAutomationApp(object):
 
 
     # ------------------------------------------------------------------
-    # ESTADO DEL FORMULARIO / CONFIGURACI√ìN (guardar / cargar)
+    # ESTADO DEL FORMULARIO / CONFIGURACI”N (guardar / cargar)
     # ------------------------------------------------------------------    
     def cache_current_form_state(self):        
         if getattr(self, 'current_program_name', None) and self.param_entries:
@@ -276,10 +276,10 @@ class PSSEAutomationApp(object):
         prog_info = self.get_program_definition(program_name)
         saved_params = self.get_program_state(program_name)
 
-        # Resetea el t√≠tulo del panel al est√°ndar
+        # Resetea el tÌtulo del panel al est·ndar
         self.param_frame.config(text=" Parameters ")
 
-        # Documentaci√≥n
+        # DocumentaciÛn
         self.doc_text.config(state=tk.NORMAL)
         self.doc_text.delete("1.0", tk.END)
         self.doc_text.insert(tk.END, prog_info.get("doc", "No documentation available."))
@@ -290,7 +290,7 @@ class PSSEAutomationApp(object):
 
 
     # ------------------------------------------------------------------
-    # CONSTRUCCI√ìN DIN√ÅMICA DEL FORMULARIO DE PAR√ÅMETROS
+    # CONSTRUCCI”N DIN¡MICA DEL FORMULARIO DE PAR¡METROS
     # ------------------------------------------------------------------
     def _build_parameter_form(self, parameters, saved_params):       
         for widget in self.param_frame.winfo_children():
@@ -423,7 +423,7 @@ class PSSEAutomationApp(object):
                 clipboard_text = clipboard_text.strip().rstrip(";")
                 parsed_paths = self.parse_paths(clipboard_text)
                 for p in parsed_paths:
-                    listbox_widget.insert(tk.END, p)
+                    listbox_widget.insert(tk.END, p.encode("latin-1"))
         except Exception:
             pass
         return "break"
@@ -456,7 +456,7 @@ class PSSEAutomationApp(object):
         return "break"
 
     # ------------------------------------------------------------------
-    # EJECUCI√ìN DEL PROGRAMA SELECCIONADO
+    # EJECUCI”N DEL PROGRAMA SELECCIONADO
     # ------------------------------------------------------------------
     def on_run_clicked(self):
         try:
@@ -624,7 +624,7 @@ class PSSEAutomationApp(object):
         widget.yview_scroll(direction, "units")
 
     # ==================================================================
-    # UTILER√çAS EST√ÅTICAS (Independientes de clase)
+    # UTILERÕAS EST¡TICAS (Independientes de clase)
     # ==================================================================
     
     @staticmethod
@@ -638,7 +638,7 @@ class PSSEAutomationApp(object):
                 return val.decode('utf-8')
             except Exception:
                 try:
-                    return val.decode('latin-1')
+                    return val.decode('utf-8')
                 except Exception:
                     return val
         return str(val)
@@ -648,10 +648,10 @@ class PSSEAutomationApp(object):
         if not entry_value:
             return []
 
-        # 1. Normalizar saltos de l√≠nea y comas, convirti√©ndolos a punto y coma
+        # 1. Normalizar saltos de lÌnea y comas, convirtiÈndolos a punto y coma
         normalized = entry_value.replace("\r\n", ";").replace("\n", ";").replace(",", ";")
 
-        # 2. Si es una sola l√≠nea pegada sin separadores (ej: "C:\ruta1" "D:\ruta2")
+        # 2. Si es una sola lÌnea pegada sin separadores (ej: "C:\ruta1" "D:\ruta2")
         if ";" not in normalized:
             if '"' in normalized:
                 found_paths = re.findall(r'"([^"]*)"', normalized)
@@ -663,7 +663,7 @@ class PSSEAutomationApp(object):
             if len(drive_splits) > 1:
                 return [p.strip().strip('"').strip("'") for p in drive_splits if p.strip()]
 
-        # 3. Separar por punto y coma (que ahora incluye todos los saltos de l√≠nea)
+        # 3. Separar por punto y coma (que ahora incluye todos los saltos de lÌnea)
         raw_splits = normalized.split(";")
         cleaned_paths = []
         for p in raw_splits:
