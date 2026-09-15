@@ -12,8 +12,8 @@ psspy.set_relang(1,2610,"1")
 """
 
 import os
-from pssegui.programs import BaseProgram
-from pssegui.utils.snp import create_snapshot
+from pssetools.programs import BaseProgram
+from pssetools.utils.snp import create_snapshot
 
 
 class Snapshot(BaseProgram):

@@ -13,7 +13,7 @@ la compilacion como un subproceso.
 
 import os
 import subprocess
-from pssegui.programs import BaseProgram
+from pssetools.programs import BaseProgram
 
 
 class CompilaProgram(BaseProgram):

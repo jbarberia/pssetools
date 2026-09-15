@@ -17,7 +17,7 @@ import re
 import sys
 import psse34
 import psspy
-from pssegui.programs import BaseProgram
+from pssetools.programs import BaseProgram
 
 
 class DynStrtDebug(BaseProgram):

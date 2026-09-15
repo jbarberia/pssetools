@@ -26,7 +26,7 @@ Nombre de la Herramienta
 Documentación que aparecerá en el panel lateral de la GUI. Explica
 qué hace este script y qué parámetros necesita.
 """
-from pssegui.programs import BaseProgram
+from pssetools.programs import BaseProgram
 
 class MiNuevoPrograma(BaseProgram):
     

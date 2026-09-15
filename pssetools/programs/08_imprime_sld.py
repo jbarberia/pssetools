@@ -11,7 +11,7 @@ import os
 import shutil
 import time
 import subprocess
-from pssegui.programs import BaseProgram
+from pssetools.programs import BaseProgram
 
 class SLDPrinter(BaseProgram):
     

@@ -14,7 +14,7 @@ path, ext = os.path.splitext(case)
 psspy.save(path + "modificado" + ext)
 """
 import os
-from pssegui.programs import BaseProgram
+from pssetools.programs import BaseProgram
 
 class EjecutaRutina(BaseProgram):
     

@@ -12,9 +12,9 @@ Corre un AC Contingency Calculation y genera dos excel:
 import os
 import pandas as pd
 
-from pssegui.programs import BaseProgram
-from pssegui.utils.accc_df import accc_df
-from pssegui.utils.accc_unzip import accc_unzip
+from pssetools.programs import BaseProgram
+from pssetools.utils.accc_df import accc_df
+from pssetools.utils.accc_unzip import accc_unzip
 
 
 class ACCCProgram(BaseProgram):

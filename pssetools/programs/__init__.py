@@ -39,7 +39,7 @@ def discover_programs(test_dir=None):
     # Aseguramos la ruta a la carpeta 'programs'
     if os.path.basename(current_dir) == "programs":
         programs_dir = current_dir
-        pkg_root = os.path.dirname(current_dir) # carpeta 'pssegui'
+        pkg_root = os.path.dirname(current_dir) # carpeta 'pssetools'
     else:
         programs_dir = os.path.join(current_dir, "programs")
         pkg_root = current_dir
@@ -76,11 +76,11 @@ def discover_programs(test_dir=None):
         
         if rel_dir == ".":
             rel_key = fname
-            full_module_path = "pssegui.programs." + module_name
+            full_module_path = "pssetools.programs." + module_name
         else:
             rel_key = os.path.join(rel_dir, fname).replace("\\", "/")
             sub_pkg = rel_dir.replace(os.sep, ".")
-            full_module_path = "pssegui.programs." + sub_pkg + "." + module_name
+            full_module_path = "pssetools.programs." + sub_pkg + "." + module_name
 
         try:
             # Importación segura

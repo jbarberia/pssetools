@@ -22,7 +22,7 @@ import os
 import re
 import pandas as pd
 
-from pssegui.programs import BaseProgram
+from pssetools.programs import BaseProgram
 
 
 class FusionadorDeCaso(BaseProgram):
@@ -148,7 +148,7 @@ class FusionadorDeCaso(BaseProgram):
                     int(identificador[1]),  # ibus
                     int(identificador[2]),  # jbus
                     int(identificador[3]),  # kbus
-                    identificador[3],       # ckt
+                    identificador[4],       # ckt
                 ])
 
         return bus_1, bus_2, fronteras

@@ -13,7 +13,7 @@ import shutil
 import sys
 import re
 import time
-from pssegui.programs import BaseProgram
+from pssetools.programs import BaseProgram
 
 class DynamicSimulationProgram(BaseProgram):
     

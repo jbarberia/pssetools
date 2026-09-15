@@ -12,8 +12,8 @@ Para esto se puede usar la actividad ACCC y su excel de resultados.
 import os
 import pandas as pd
 
-from pssegui.programs import BaseProgram
-from pssegui.utils.otdf import otdf
+from pssetools.programs import BaseProgram
+from pssetools.utils.otdf import otdf
 
 
 class OTDFProgram(BaseProgram):

@@ -9,8 +9,8 @@ ascc.xlsx
 import os
 import pandas as pd
 
-from pssegui.programs import BaseProgram
-from pssegui.utils.ascc import ascc
+from pssetools.programs import BaseProgram
+from pssetools.utils.ascc import ascc
 
 class ASCCProgram(BaseProgram):
 
