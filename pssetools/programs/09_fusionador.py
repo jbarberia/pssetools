@@ -198,15 +198,19 @@ class FusionadorDeCaso(BaseProgram):
 
 
     def obtener_barras_frontera(self, fronteras):
+        psspy = self.psspy
         barras_frontera = []
         for frontera in fronteras:
             tipo = frontera[0]
             if tipo == "T3":
-                barras = frontera[1:4]
+                ierr, _ = psspy.wndint(*frontera[1:5], string="STATUS")
+                barras = frontera[1:4] if ierr == 0 else []            
             if tipo == "LII":
-                barras = frontera[1:3]
+                ierr, _ = psspy.brnint(*frontera[1:4], string="STATUS")
+                barras = frontera[1:3] if ierr == 0 else []            
             if tipo == "SYS":
-                barras = frontera[1:3]
+                ierr, _ = psspy.brnint(*frontera[1:4], string="STATUS")            
+                barras = frontera[1:3] if ierr == 0 else []
             barras_frontera.extend(barras)
         return barras_frontera
 
