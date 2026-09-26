@@ -115,6 +115,8 @@ class PSSEAutomationApp(object):
         file_menu.add_command(label="Save Configuration", command=self.save_configurations, accelerator="Ctrl+S")
         file_menu.add_command(label="Load Configuration", command=self.load_configuration, accelerator="Ctrl+O")
         file_menu.add_separator()
+        file_menu.add_command(label="Export as BAT...", command=self.export_as_bat, accelerator="Ctrl+E")
+        file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
         menubar.add_cascade(label="File", menu=file_menu)
 
@@ -135,6 +137,7 @@ class PSSEAutomationApp(object):
     def _bind_hotkeys(self):        
         self.root.bind("<Control-s>", lambda event: self.save_configurations())
         self.root.bind("<Control-o>", lambda event: self.load_configuration())
+        self.root.bind("<Control-e>", lambda event: self.export_as_bat())
         self.root.bind("<Control-Return>", lambda event: self.on_run_clicked())        
         self.root.bind("<Control-Up>", self.on_ctrl_arrow_key)
         self.root.bind("<Control-Down>", self.on_ctrl_arrow_key)
@@ -266,6 +269,143 @@ class PSSEAutomationApp(object):
         self.state.workspace.ensure_workspace_exists()
         self.refresh_current_program()
 
+
+    # ------------------------------------------------------------------
+    # EXPORTAR PROGRAMA ACTUAL COMO ARCHIVO .BAT
+    # ------------------------------------------------------------------
+    def export_as_bat(self):
+        """Exporta el programa seleccionado con su configuracion actual como un .bat ejecutable."""
+        self.cache_current_form_state()
+        program_name = self.get_selected_program_name()
+        if not program_name:
+            TkMessageBox.showwarning("Sin seleccion", "Seleccione un programa antes de exportar.")
+            return
+
+        bat_content = self._build_bat_command(program_name)
+        if bat_content is None:
+            return
+
+        # Nombre por defecto: nombre del script sin extension, con .bat
+        default_name = os.path.splitext(os.path.basename(program_name))[0] + ".bat"
+        filename = tkFileDialog.asksaveasfilename(
+            title="Exportar como BAT",
+            defaultextension=".bat",
+            initialfile=default_name,
+            filetypes=[("BAT files", "*.bat"), ("All files", "*.*")],
+        )
+        if not filename:
+            return
+
+        try:
+            with open(filename, "w") as f:
+                f.write(bat_content)
+            print("BAT exportado: " + filename)
+            TkMessageBox.showinfo("Exportado", "Archivo BAT guardado en:\n" + filename)
+        except Exception as e:
+            TkMessageBox.showerror("Error", "No se pudo guardar el archivo:\n" + str(e))
+
+
+    def _build_bat_command(self, program_name):
+        """Construye el contenido del .bat para el programa y estado actuales.
+
+        Traduce cada parametro del formulario al flag CLI correspondiente usando
+        la convencion: nombre_param -> --nombre-param (underscore -> guion).
+        Los paths con espacios son entrecomillados automaticamente.
+        """
+        prog_info = self.get_program_definition(program_name)
+        current_params = self.get_program_state(program_name)
+        parameters = prog_info.get("parameters", [])
+
+        if not parameters:
+            TkMessageBox.showwarning(
+                "Sin parametros",
+                "El programa '{}' no tiene parametros definidos.".format(program_name)
+            )
+            return None
+
+        # Ruta absoluta al script .py del programa
+        programs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "programs")
+        script_path = os.path.join(programs_dir, program_name)
+
+        # Descripcion especial para booleanos que invierten el default
+        # (ej: overwrite=True por defecto, se desactiva con --no-overwrite)
+        INVERTED_FLAGS = {
+            "overwrite": "--no-overwrite",
+        }
+
+        def _quote(path):
+            """Entrecomilla una ruta si contiene espacios."""
+            path = str(path)
+            if " " in path and not (path.startswith('"') and path.endswith('"')):
+                return '"' + path + '"'
+            return path
+
+        # Construir la lista de argumentos CLI
+        args = []
+        for param in parameters:
+            name = param["name"]
+            ptype = param["type"]
+            val = current_params.get(name, param.get("default"))
+            # Convierte underscore a guion para el nombre del flag
+            flag = "--" + name.replace("_", "-")
+
+            if ptype == "bool":
+                is_true = bool(val)
+                if name in INVERTED_FLAGS:
+                    # Flag que desactiva el default True
+                    if not is_true:
+                        args.append(INVERTED_FLAGS[name])
+                else:
+                    # Flag normal: solo se incluye si es True
+                    if is_true:
+                        args.append(flag)
+
+            elif ptype == "multi_file":
+                # val puede ser string separado por ";" o lista
+                if isinstance(val, list):
+                    paths = val
+                else:
+                    paths = self.parse_paths(self.safe_text(val)) if val else []
+                if paths:
+                    args.append(flag)
+                    args.extend([_quote(p) for p in paths])
+
+            else:
+                # file, save, text, etc.
+                if val is not None and str(val).strip():
+                    args.append(flag)
+                    args.append(_quote(str(val).strip()))
+
+        # Agregar output_dir y temp_dir del workspace
+        output_dir = self.state.workspace.output_dir
+        temp_dir = self.state.workspace.temp_dir
+        if output_dir:
+            args += ["--output-dir", _quote(output_dir)]
+        if temp_dir:
+            args += ["--temp-dir", _quote(temp_dir)]
+
+        # Armar el contenido del .bat
+        python_exe = sys.executable or "python"
+        lines = [
+            "@echo off",
+            "REM Generado por PSS/E Automation Suite",
+            "REM Programa: {}".format(program_name),
+            "",
+            "{} {}  ^".format(_quote(python_exe), _quote(script_path)),
+        ]
+        # Cada argumento en su propia linea con continuacion "^" para legibilidad
+        for i, arg in enumerate(args):
+            is_last = (i == len(args) - 1)
+            if is_last:
+                lines.append("    {}".format(arg))
+            else:
+                lines.append("    {}  ^".format(arg))
+
+        lines.append("")
+        lines.append("pause")
+        lines.append("")
+
+        return "\r\n".join(lines)
 
 
     def refresh_current_program(self):
