@@ -102,3 +102,75 @@ class ACCCProgram(BaseProgram):
         if flow_table:
             pd.concat(flow_table).to_excel(os.path.join(output_dir, "accc_flow.xlsx"), index=False)
             pd.concat(volt_table).to_excel(os.path.join(output_dir, "accc_volt.xlsx"), index=False)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "ACCC\n"
+            "----\n"
+            "Corre un AC Contingency Calculation y genera dos excel:\n"
+            "  - accc_flow.xlsx  (lineas monitoreadas)\n"
+            "  - accc_volt.xlsx  (tensiones monitoreadas)"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-c", "--cases",
+        nargs="+",
+        required=True,
+        help="Rutas a los casos de trabajo (.sav)."
+    )
+
+    parser.add_argument(
+        "-s", "--sub-file",
+        required=True,
+        dest="sub_file",
+        default="estudio.sub",
+        help="Ruta al archivo de subsistema (.sub)."
+    )
+
+    parser.add_argument(
+        "-m", "--mon-file",
+        required=True,
+        dest="mon_file",
+        default="estudio.mon",
+        help="Ruta al archivo de monitoreados (.mon)."
+    )
+
+    parser.add_argument(
+        "-n", "--con-file",
+        required=True,
+        dest="con_file",
+        default="estudio.con",
+        help="Ruta al archivo de contingencias (.con)."
+    )
+
+    parser.add_argument(
+        "-o", "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Carpeta de destino de los resultados (por defecto: directorio actual)."
+    )
+
+    parser.add_argument(
+        "-t", "--temp-dir",
+        dest="temp_dir",
+        default=".",
+        help="Carpeta de archivos temporales (por defecto: directorio actual)."
+    )
+
+    args = parser.parse_args()
+
+    program = ACCCProgram()
+    program._run(
+        cases=args.cases,
+        sub_file=args.sub_file,
+        mon_file=args.mon_file,
+        con_file=args.con_file,
+        output_dir=args.output_dir,
+        temp_dir=args.temp_dir,
+    )

@@ -190,3 +190,94 @@ class DynamicSimulationProgram(BaseProgram):
         if match:
             initial_conditions = match.group(1)        
             return initial_conditions
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Simulacion Dinamica\n"
+            "-------------------\n"
+            "Ejecuta simulaciones dinamicas secuencialmente."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-c", "--cases",
+        nargs="+",
+        required=True,
+        help="Rutas a los casos de trabajo (.sav)."
+    )
+
+    parser.add_argument(
+        "--convload",
+        required=True,
+        help="Ruta al script de conversion de caso (.py)."
+    )
+
+    parser.add_argument(
+        "-s", "--snapshot",
+        required=True,
+        help="Ruta al snapshot base (.snp)."
+    )
+
+    parser.add_argument(
+        "-d", "--dlls",
+        nargs="+",
+        required=False,
+        default=[],
+        help="Rutas a las librerias de usuario (.dll)."
+    )
+
+    parser.add_argument(
+        "--scripts",
+        nargs="+",
+        required=True,
+        help="Rutas a los scripts de eventos (.py)."
+    )
+
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=False,
+        help="Si se especifica, detiene la simulacion ante condiciones iniciales sospechosas."
+    )
+
+    parser.add_argument(
+        "--no-overwrite",
+        action="store_false",
+        dest="overwrite",
+        default=True,
+        help="Si se especifica, no sobreescribe simulaciones existentes."
+    )
+
+    parser.add_argument(
+        "-o", "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Carpeta de destino de los resultados (por defecto: directorio actual)."
+    )
+
+    parser.add_argument(
+        "-t", "--temp-dir",
+        dest="temp_dir",
+        default=".",
+        help="Carpeta de archivos temporales (por defecto: directorio actual)."
+    )
+
+    args = parser.parse_args()
+
+    program = DynamicSimulationProgram()
+    program.main(
+        cases=args.cases,
+        snapshot=args.snapshot,
+        dlls=args.dlls,
+        convload=args.convload,
+        scripts=args.scripts,
+        debug=args.debug,
+        overwrite=args.overwrite,
+        output_dir=args.output_dir,
+        temp_dir=args.temp_dir,
+    )

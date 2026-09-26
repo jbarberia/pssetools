@@ -56,3 +56,45 @@ class EjecutaRutina(BaseProgram):
             
 
 
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Ejecuta rutina\n"
+            "--------------\n"
+            "Corre diferentes pythons sobre los casos.\n"
+            "Se debe aceptar la opcion sobrescribir para guardar el caso de forma permanente."
+        )
+    )
+
+    parser.add_argument(
+        "-c", "--cases",
+        nargs="+",
+        required=True,
+        help="Rutas a los casos guardados (.sav)."
+    )
+
+    parser.add_argument(
+        "-p", "--py-files",
+        nargs="+",
+        required=True,
+        dest="py_files",
+        help="Rutas a los archivos Python (.py) a ejecutar sobre cada caso."
+    )
+
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        default=False,
+        help="Si se especifica, guarda el caso modificando el archivo original."
+    )
+
+    args = parser.parse_args()
+
+    program = EjecutaRutina()
+    program.main(
+        cases=args.cases,
+        py_files=args.py_files,
+        overwrite=args.overwrite,
+    )

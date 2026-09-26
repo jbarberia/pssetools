@@ -108,3 +108,94 @@ class Snapshot(BaseProgram):
         psspy.set_netfrq(1)
 
         ierr = psspy.snap(sfile=snapshot)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Genera un snapshot\n"
+            "------------------\n"
+            "En idv se pasa el response file con los canales a sumar.\n"
+            "En py se pasa un python con las opciones tipicas a usar."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-c", "--case",
+        required=True,
+        help="Ruta al caso de trabajo (.sav)."
+    )
+
+    parser.add_argument(
+        "-d", "--dyr-files",
+        nargs="+",
+        required=True,
+        dest="dyr_files",
+        help="Rutas a los archivos de datos dinamicos (.dyr)."
+    )
+
+    parser.add_argument(
+        "--conec",
+        required=False,
+        default="",
+        help="Ruta al archivo CONEC (.flx)."
+    )
+
+    parser.add_argument(
+        "--conet",
+        required=False,
+        default="",
+        help="Ruta al archivo CONET (.flx)."
+    )
+
+    parser.add_argument(
+        "--idv",
+        required=False,
+        default="",
+        help="Ruta al archivo de canales (.idv)."
+    )
+
+    parser.add_argument(
+        "--py",
+        required=False,
+        default="",
+        help="Ruta al archivo de configuracion (.py)."
+    )
+
+    parser.add_argument(
+        "-s", "--snapshot",
+        required=True,
+        help="Ruta de salida del snapshot (.snp)."
+    )
+
+    parser.add_argument(
+        "-o", "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Carpeta de destino de los resultados (por defecto: directorio actual)."
+    )
+
+    parser.add_argument(
+        "-t", "--temp-dir",
+        dest="temp_dir",
+        default=".",
+        help="Carpeta de archivos temporales (por defecto: directorio actual)."
+    )
+
+    args = parser.parse_args()
+
+    program = Snapshot()
+    program.run_snapshot(
+        case=args.case,
+        dyr_files=args.dyr_files,
+        conec=args.conec,
+        conet=args.conet,
+        idv=args.idv,
+        py=args.py,
+        snapshot=args.snapshot,
+        output_dir=args.output_dir,
+        temp_dir=args.temp_dir,
+    )

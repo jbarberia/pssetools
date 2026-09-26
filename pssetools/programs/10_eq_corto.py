@@ -116,6 +116,13 @@ class Equivalente(BaseProgram):
                 ierr, buses = psspy.tree(2, 1)
             psspy.progress_output(1)
 
+            # elimina el varistor en los bancos de capacitores
+            ierr, (id,) = psspy.abrnchar(string=["ID"])
+            ierr, (fr, to, mov) = psspy.abrnint (string=["FROMNUMBER", "TONUMBER", "MOVTYPE"])
+            mov_lines = [(f,t,i) for f,t,i,m in zip(fr, to, id, mov) if m != 0]
+            for i, j, ckt in mov_lines:
+                psspy.seq_branch_data_3(i, j, ckt, intgar1=0, realar8=0.0)
+
             # calcula corto
             psspy.bsys(0,0,[0.0,0.0],0,[],1,[ibus],0,[],0,[])
             psspy.short_circuit_warning(0)
@@ -133,7 +140,7 @@ class Equivalente(BaseProgram):
                 relfile="", fcdfile="", scfile="nooutput",
                 rptop=-1, rptlvl=0
             )
-
+            
             sc_data[ibus] = {
                 "z0": rlst["thevzpu"][0]["z0"],
                 "z1": rlst["thevzpu"][0]["z1"],
@@ -267,15 +274,19 @@ class Equivalente(BaseProgram):
 
 
     def obtener_barras_frontera(self, fronteras):
+        psspy = self.psspy
         barras_frontera = []
         for frontera in fronteras:
             tipo = frontera[0]
             if tipo == "T3":
-                barras = frontera[1:4]
+                ierr, _ = psspy.wndint(*frontera[1:5], string="STATUS")
+                barras = frontera[1:4] if ierr == 0 else []            
             if tipo == "LII":
-                barras = frontera[1:3]
+                ierr, _ = psspy.brnint(*frontera[1:4], string="STATUS")
+                barras = frontera[1:3] if ierr == 0 else []            
             if tipo == "SYS":
-                barras = frontera[1:3]
+                ierr, _ = psspy.brnint(*frontera[1:4], string="STATUS")            
+                barras = frontera[1:3] if ierr == 0 else []
             barras_frontera.extend(barras)
         return barras_frontera
 
@@ -301,3 +312,65 @@ class Equivalente(BaseProgram):
             return False
         else:
             return True
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Equivalente de cortocircuito\n"
+            "----------------------------\n"
+            "Realiza un equivalente de cortocircuito.\n\n"
+            "El archivo de limites define las fronteras del sistema. Ejemplo:\n\n"
+            "  8000 2620\n"
+            "  LII 5016 8011 1\n"
+            "  LII 6006 8004 1\n\n"
+            "siendo 8000 una barra interna a la isla y 2620 una barra externa."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-i", "--infile",
+        required=True,
+        help="Ruta al caso de entrada (.sav)."
+    )
+
+    parser.add_argument(
+        "-f", "--ofile",
+        required=True,
+        help="Ruta del caso de salida (.sav)."
+    )
+
+    parser.add_argument(
+        "-l", "--limit-file",
+        required=True,
+        dest="limit_file",
+        help="Ruta al archivo de limites (.txt)."
+    )
+
+    parser.add_argument(
+        "-o", "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Carpeta de destino de los resultados (por defecto: directorio actual)."
+    )
+
+    parser.add_argument(
+        "-t", "--temp-dir",
+        dest="temp_dir",
+        default=".",
+        help="Carpeta de archivos temporales (por defecto: directorio actual)."
+    )
+
+    args = parser.parse_args()
+
+    program = Equivalente()
+    program.main(
+        infile=args.infile,
+        ofile=args.ofile,
+        limit_file=args.limit_file,
+        output_dir=args.output_dir,
+        temp_dir=args.temp_dir,
+    )

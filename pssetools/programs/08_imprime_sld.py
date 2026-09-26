@@ -98,3 +98,40 @@ class SLDPrinter(BaseProgram):
             return True
         else:
             return False
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Imprime SLD\n"
+            "-----------\n"
+            "Imprime el SLD que esta actualmente abierto en la GUI del PSSE.\n"
+            "Tras la impresion, utiliza un subproceso de Python 3 para recortar\n"
+            "los bordes y eliminar errores de paginacion del PDF."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-c", "--cases",
+        nargs="+",
+        required=True,
+        help="Rutas a los casos (.sav) cuyos SLD se imprimiran."
+    )
+
+    parser.add_argument(
+        "--python-3-path",
+        dest="python_3_path",
+        default="C:/Python314/python.exe",
+        help="Ruta al ejecutable de Python 3 con PyMuPDF instalado (por defecto: C:/Python314/python.exe)."
+    )
+
+    args = parser.parse_args()
+
+    program = SLDPrinter()
+    program.main(
+        cases=args.cases,
+        python_3_path=args.python_3_path,
+    )

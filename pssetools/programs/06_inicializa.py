@@ -155,3 +155,84 @@ class DynStrtDebug(BaseProgram):
         pattern = r"K..\s*?([0-9]{1,6})\s.*?"
         match = re.findall(pattern, report)
         return [int(m) for m in match]
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Utilidad para inicializar el caso\n"
+            "---------------------------------\n"
+            "1. Convierte el caso.\n"
+            "2. Inicializa la base de estudios.\n"
+            "3. Captura las condiciones sospechosas.\n"
+            "4. Genera un reporte para eso.\n"
+            "5. Abre el caso original.\n"
+            "6. Genera un subsistema con las condiciones sospechosas."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-c", "--case",
+        required=True,
+        help="Ruta al caso de trabajo (.sav)."
+    )
+
+    parser.add_argument(
+        "-s", "--snap",
+        required=True,
+        help="Ruta al snapshot (.snp)."
+    )
+
+    parser.add_argument(
+        "--py",
+        required=False,
+        default="",
+        help="Ruta al archivo de conversion de carga (convload) (.py)."
+    )
+
+    parser.add_argument(
+        "-d", "--dll-files",
+        nargs="+",
+        required=False,
+        default=[],
+        dest="dll_files",
+        help="Rutas a las librerias de usuario (.dll)."
+    )
+
+    parser.add_argument(
+        "--drop-library",
+        action="store_true",
+        default=False,
+        dest="drop_library",
+        help="Si se especifica, quita las dll luego de la inicializacion."
+    )
+
+    parser.add_argument(
+        "-o", "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Carpeta de destino de los resultados (por defecto: directorio actual)."
+    )
+
+    parser.add_argument(
+        "-t", "--temp-dir",
+        dest="temp_dir",
+        default=".",
+        help="Carpeta de archivos temporales (por defecto: directorio actual)."
+    )
+
+    args = parser.parse_args()
+
+    program = DynStrtDebug()
+    program.run_strt_debug(
+        case=args.case,
+        snap=args.snap,
+        py=args.py,
+        dll_files=args.dll_files,
+        drop_library=args.drop_library,
+        output_dir=args.output_dir,
+        temp_dir=args.temp_dir,
+    )

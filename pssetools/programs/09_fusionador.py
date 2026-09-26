@@ -236,3 +236,76 @@ class FusionadorDeCaso(BaseProgram):
             return False
         else:
             return True
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Fusionador de casos\n"
+            "-------------------\n"
+            "Fusiona dos casos PSS/E a partir de un archivo de limites.\n\n"
+            "El archivo de limites debe especificarse con el mapstring correspondiente al\n"
+            "elemento usado. Por ejemplo para seccionar el NOA:\n\n"
+            "  8000 2620\n"
+            "  LII 5016 8011 1\n"
+            "  LII 6006 8004 1\n\n"
+            "case_1 contiene la isla con la barra 8000\n"
+            "case_2 contiene la isla con la barra 2620"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--case-1",
+        required=True,
+        dest="case_1",
+        help="Ruta al caso 1 (.sav)."
+    )
+
+    parser.add_argument(
+        "--case-2",
+        required=True,
+        dest="case_2",
+        help="Ruta al caso 2 (.sav)."
+    )
+
+    parser.add_argument(
+        "-f", "--ofile",
+        required=True,
+        help="Ruta del archivo de salida (.sav)."
+    )
+
+    parser.add_argument(
+        "-l", "--limit-file",
+        required=True,
+        dest="limit_file",
+        help="Ruta al archivo de limites (.txt)."
+    )
+
+    parser.add_argument(
+        "-o", "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Carpeta de destino de los resultados (por defecto: directorio actual)."
+    )
+
+    parser.add_argument(
+        "-t", "--temp-dir",
+        dest="temp_dir",
+        default=".",
+        help="Carpeta de archivos temporales (por defecto: directorio actual)."
+    )
+
+    args = parser.parse_args()
+
+    program = FusionadorDeCaso()
+    program._run(
+        case_1=args.case_1,
+        case_2=args.case_2,
+        ofile=args.ofile,
+        limit_file=args.limit_file,
+        output_dir=args.output_dir,
+        temp_dir=args.temp_dir,
+    )

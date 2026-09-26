@@ -72,3 +72,62 @@ class CompilaProgram(BaseProgram):
 
         except Exception as e:
             print("Error al intentar lanzar el subproceso: {}".format(e))
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Compila\n"
+            "-------\n"
+            "Genera la compilacion por medio del PSSE Env Manager.\n"
+            "Ejecuta la compilacion como un subproceso para compatibilidad con versiones modernas."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--python-exe",
+        dest="python_exe",
+        default="C:/Python314/python.exe",
+        help="Ruta al ejecutable de Python (por defecto: C:/Python314/python.exe)."
+    )
+
+    parser.add_argument(
+        "-s", "--sources",
+        nargs="+",
+        required=True,
+        help="Archivos fuente a compilar (.for, .flx, .lib)."
+    )
+
+    parser.add_argument(
+        "-d", "--dll",
+        required=True,
+        help="Ruta de salida de la libreria compilada (.dll)."
+    )
+
+    parser.add_argument(
+        "-o", "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Carpeta de destino de los resultados (por defecto: directorio actual)."
+    )
+
+    parser.add_argument(
+        "-t", "--temp-dir",
+        dest="temp_dir",
+        default=".",
+        help="Carpeta de archivos temporales (por defecto: directorio actual)."
+    )
+
+    args = parser.parse_args()
+
+    program = CompilaProgram()
+    program.compilacion(
+        python_exe=args.python_exe,
+        sources=args.sources,
+        dll=args.dll,
+        output_dir=args.output_dir,
+        temp_dir=args.temp_dir,
+    )

@@ -56,4 +56,54 @@ class ASCCProgram(BaseProgram):
             ofile = os.path.join(output_dir, "ascc.xlsx")
             pd.concat(ascc_list).to_excel(ofile, index=False)
             print("\nASCC Report successfully saved to: {}".format(ofile))
-        
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "ASCC (Automated Short Circuit Calculation)\n"
+            "------------------------------------------\n"
+            "Corre un cortocircuito con opciones tipicas y lo tabula en ascc.xlsx"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-c", "--cases",
+        nargs="+",
+        required=True,
+        help="Rutas a los casos de trabajo (.sav)."
+    )
+
+    parser.add_argument(
+        "-s", "--sub-file",
+        required=True,
+        dest="sub_file",
+        help="Ruta al archivo de subsistema (.sbsxml)."
+    )
+
+    parser.add_argument(
+        "-o", "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Carpeta de destino de los resultados (por defecto: directorio actual)."
+    )
+
+    parser.add_argument(
+        "-t", "--temp-dir",
+        dest="temp_dir",
+        default=".",
+        help="Carpeta de archivos temporales (por defecto: directorio actual)."
+    )
+
+    args = parser.parse_args()
+
+    program = ASCCProgram()
+    program.run_ascc(
+        cases=args.cases,
+        sub_file=args.sub_file,
+        output_dir=args.output_dir,
+        temp_dir=args.temp_dir,
+    )
