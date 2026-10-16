@@ -25,6 +25,19 @@ class SLDPrinter(BaseProgram):
                 "editable": True,
             },
             {
+                "name": "inkscape_path",
+                "label": "Inkscape (para generar EMF):",
+                "type": "file",
+                "default": "C:/Program Files/Inkscape/bin/inkscape.exe", # Ajustar a donde tengas instalado inkscape
+                "editable": True,
+            },
+            {
+                "name": "to_emf",
+                "label": "Generar EMF:",
+                "type": "bool",
+                "default": True
+            },
+            {
                 "name": "cases",
                 "label": "Saved cases (.sav):",
                  "type": "multi_file",
@@ -36,7 +49,7 @@ class SLDPrinter(BaseProgram):
         self.main(**parsed_params)
             
 
-    def main(self, cases, python_3_path, **kwargs):        
+    def main(self, cases, python_3_path, inkscape_path, to_emf, **kwargs):        
         psspy = self.psspy
         psspy.psseinit()
 
@@ -65,28 +78,34 @@ class SLDPrinter(BaseProgram):
 
             pdfs_generados.append(output)
 
-        # ajuste
+        # ajuste pdf
         base_dir = os.path.dirname(os.path.abspath(__file__))
         script_path = os.path.abspath(os.path.join(base_dir, "..", "utils", "pdf_fixer.py"))
-        
-        if pdfs_generados:
-            cmd = [python_3_path, script_path, "--pdfs"] + pdfs_generados
-
+                    
+        # 1. Run PDF Fixer
         try:
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout_data, stderr_data = process.communicate()
-            
-            out_str = stdout_data.decode("utf-8", errors="replace") if stdout_data else ""
-            err_str = stderr_data.decode("utf-8", errors="replace") if stderr_data else ""
-
-            if out_str:
-                print(out_str)
-            if process.returncode != 0 or err_str:
-                print("--- ERRORES AL AJUSTAR PDFS ---")
-                print(err_str)
+            cmd_pdffixer = [python_3_path, script_path, "--pdfs"] + pdfs_generados
+            fixer_proc = subprocess.Popen(cmd_pdffixer, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out_fix, err_fix = fixer_proc.communicate()
+            if out_fix:
+                print(out_fix.decode("utf-8", errors="replace"))
+            if fixer_proc.returncode != 0 and err_fix:
+                print("Error en pdf_fixer: {}".format(err_fix.decode("utf-8", errors="replace")))
         except Exception as e:
-            print("Error al invocar subproceso de ajuste: {}".format(e))
+            print("Error al ejecutar pdf_fixer: {}".format(e))
 
+        # 2. Run Inkscape sequentially after fixer finishes
+        if to_emf:           
+            try:
+                cmd_inkscape = [inkscape_path, "--export-type=emf"] + pdfs_generados
+                ink_proc = subprocess.Popen(cmd_inkscape, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out_ink, err_ink = ink_proc.communicate()
+                if out_ink:
+                    print(out_ink.decode("utf-8", errors="replace"))
+                if ink_proc.returncode != 0 and err_ink:
+                    print("Error en Inkscape: {}".format(err_ink.decode("utf-8", errors="replace")))
+            except Exception as e:
+                print("Error al ejecutar Inkscape: {}".format(e))
 
 
 
