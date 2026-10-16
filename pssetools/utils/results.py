@@ -18,8 +18,11 @@ def get_results_from_case(mon_file):
         elif row["ELEMENTO"] in ["T3"]:
             data.extend(get_3w_transformer_data(row))
 
-        elif row["ELEMENTO"] in ["T3"]:
-            data.extend(get_load_transformer_data(row))
+        elif row["ELEMENTO"] in ["LO"]:
+            data.extend(get_load_data(row))
+        
+        elif row["ELEMENTO"] in ["ME"]:
+            data.extend(get_machine_data(row))
 
     df = pd.DataFrame(data)
     return df
@@ -212,7 +215,7 @@ def get_3w_transformer_data(row):
 
 def get_load_data(row):
     import psspy
-    ierr, mva = psspy.busdat(int(row["ID1"]), row["ID2"], "ACT", "TOTAL")
+    ierr, mva = psspy.loddt2(int(row["ID1"]), row["ID2"], "ACT", "TOTAL")
 
     return [
         {
@@ -231,6 +234,41 @@ def get_load_data(row):
             "ID3": None,
             "ID4": None,            
             "VARIABLE": "QL",
+            "VALOR": mva.imag,
+        },
+        {
+            "ELEMENTO": row["ELEMENTO"],
+            "ID1": row["ID1"],
+            "ID2": row["ID2"],
+            "ID3": None,
+            "ID4": None,
+            "VARIABLE": "DESCRIPCION",
+            "VALOR": row["DESCRIPCION"],
+        }        
+    ]
+
+
+def get_machine_data(row):
+    import psspy
+    ierr, mva = psspy.macdt2(int(row["ID1"]), row["ID2"], "PQ")
+
+    return [
+        {
+            "ELEMENTO": row["ELEMENTO"],
+            "ID1": row["ID1"],
+            "ID2": row["ID2"],
+            "ID3": None,
+            "ID4": None,            
+            "VARIABLE": "PG",
+            "VALOR": mva.real,
+        },
+        {
+            "ELEMENTO": row["ELEMENTO"],
+            "ID1": row["ID1"],
+            "ID2": row["ID2"],
+            "ID3": None,
+            "ID4": None,            
+            "VARIABLE": "QG",
             "VALOR": mva.imag,
         },
         {
