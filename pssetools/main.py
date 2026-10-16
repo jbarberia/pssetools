@@ -37,6 +37,7 @@ class PSSEAutomationApp(object):
         self.root = root
         self.root.title("PSSE Automation")
         self.root.geometry("950x640")
+        self.root.attributes("-topmost", True)
 
         self._build_menu_bar()
         self._bind_hotkeys()
@@ -122,6 +123,7 @@ class PSSEAutomationApp(object):
 
         tools_menu = tk.Menu(menubar, tearoff=0)
         tools_menu.add_command(label="Config File Wizard...", command=self.open_config_wizard)        
+        tools_menu.add_command(label="Custom ACCC File Wizard...", command=self.list_elements)        
         menubar.add_cascade(label="Tools", menu=tools_menu)
 
         paths_menu = tk.Menu(menubar, tearoff=0)
@@ -385,7 +387,7 @@ class PSSEAutomationApp(object):
             args += ["--temp-dir", _quote(temp_dir)]
 
         # Armar el contenido del .bat
-        python_exe = sys.executable or "python"
+        python_exe = r"C:\Python27\python.exe"
         lines = [
             "@echo off",
             "REM Generado por PSS/E Automation Suite",
@@ -731,8 +733,30 @@ class PSSEAutomationApp(object):
     def open_config_wizard(self):
         try:
             from pssetools.tools.config_wizard import ConfigWizardApp
-            ConfigWizardApp(self.root) 
+            self.root.iconify()
+            app = ConfigWizardApp(self.root)
+            def _on_secondary_close():
+                self.root.deiconify()                   
+                app.root.destroy()
+            app.root.protocol("WM_DELETE_WINDOW", _on_secondary_close)
+            app.exit = _on_secondary_close
         except Exception as e:
+            self.root.deiconify()
+            TkMessageBox.showerror("Error", "No se pudo cargar la herramienta: {}".format(e))
+            
+
+    def list_elements(self):
+        try:
+            from pssetools.tools.list_elements import CustomACCCFileGenerator            
+            self.root.iconify()
+            app = CustomACCCFileGenerator(self.root)
+            def _on_secondary_close():
+                self.root.deiconify()                   
+                app.root.destroy()
+            app.root.protocol("WM_DELETE_WINDOW", _on_secondary_close)
+            app.exit = _on_secondary_close
+        except Exception as e:
+            self.root.deiconify()
             TkMessageBox.showerror("Error", "No se pudo cargar la herramienta: {}".format(e))
 
 
