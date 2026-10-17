@@ -208,6 +208,8 @@ class CustomACCCFileGenerator(object):
             if ms[0] in ["BU", "ME", "SWS", "LO", "FXS"]:
                 ms = ms + [""] * (6 - len(ms))                
                 ierr, name = psspy.notona(int(ms[1]))
+                if ierr != 0:
+                    continue
                 if name:
                     ms[-1] = name[:12].strip()
                 content.append("\t".join(ms))
@@ -215,7 +217,9 @@ class CustomACCCFileGenerator(object):
             elif ms[0] in ["TR", "SYS", "LII"]:
                 ms = ms + [""] * (6 - len(ms))
                 busi, busj, ckt = int(ms[1]), int(ms[2]), ms[3]
-                ierr, name = psspy.brnnam(busi, busj, ckt)
+                ierr, name = psspy.brnnam(busi, busj, ckt)                
+                if ierr != 0:
+                    continue
                 name = name.strip() or "{}-{}#{}".format(busi, busj, ckt)
                 ms[-1] = name
                 content.append("\t".join(ms))
@@ -224,14 +228,21 @@ class CustomACCCFileGenerator(object):
                 ms = ms + [""] * (6 - len(ms))
                 busi, busj, busk, ckt = int(ms[1]), int(ms[2]), int(ms[3]), ms[4]
                 ierr, name = psspy.tr3nam(busi, busj, busk, ckt)
+                if ierr != 0:
+                    continue
                 name = name.strip() or "{}-{}-{}#{}".format(busi, busj, busk, ckt)
                 ms[-1] = name
                 content.append("\t".join(ms))
 
         if content:
+            content.sort()
             txt = text_widget.get("1.0", tk.END)
+            all_content = [line for line in txt.splitlines() if line.strip()]
+            all_content.extend(content)
+            all_content.sort()
             text_widget.delete("1.0", tk.END)
-            text_widget.insert(tk.INSERT, txt + "\n".join(content))
+            text_widget.insert(tk.END, "\n".join(all_content) + "\n")
+            text_widget.see(tk.END)
 
 
     def create_con(self, text_widget):
@@ -244,8 +255,8 @@ class CustomACCCFileGenerator(object):
                 ierr, name = psspy.notona(int(ms[1]))
                 name = name[:12].strip()
                 content.append("def GEN_{}_{}():".format(ms[1], ms[2]))
-                content.append('\t"F/S {}"'.format(name))
-                content.append("\tpsspy.machine_chng_2({},{},intgar1=0, realar1=_f)".format(busi, id))
+                content.append('    "F/S {}"'.format(name))
+                content.append("    psspy.machine_chng_2({},{},intgar1=0, realar1=_f)".format(busi, id))
                 content.append("")
 
             if ms[0] == "LO":
@@ -254,8 +265,8 @@ class CustomACCCFileGenerator(object):
                 ierr, name = psspy.notona(int(ms[1]))
                 name = name[:12].strip()
                 content.append("def LOAD_{}_{}():".format(ms[1], ms[2]))
-                content.append('\t"F/S {}"'.format(name))
-                content.append("\tpsspy.load_chng_5({},'{}',intgar1=0, realar1=_f, realar2=_f)".format(busi, id))
+                content.append('    "F/S {}"'.format(name))
+                content.append("    psspy.load_chng_5({},'{}',intgar1=0, realar1=_f, realar2=_f)".format(busi, id))
                 content.append("")
 
             if ms[0] == "T3":
@@ -263,17 +274,26 @@ class CustomACCCFileGenerator(object):
                 ierr, name = psspy.tr3nam(busi, busj, busk, ckt)
                 name = name.strip() or "{}_{}_{}_{}".format(busi, busj, busk, ckt)
                 content.append("def TRAFO_{}():".format(name.replace("-", "_").replace("#", "_")))
-                content.append('\t"F/S {}"'.format(name))
-                content.append("\tpsspy.three_wnd_imped_chng_4({},{},{},'{}', intgar8=0)".format(busi, busj, busk, ckt))
+                content.append('    "F/S {}"'.format(name))
+                content.append("    psspy.three_wnd_imped_chng_4({},{},{},'{}', intgar8=0)".format(busi, busj, busk, ckt))
                 content.append("")
                 
-            if ms[0] in ["TR", "SYS", "LII"]:
+            if ms[0] in ["TR", "LII"]:
                 busi, busj, ckt = int(ms[1]), int(ms[2]), ms[3]
                 ierr, name = psspy.brnnam(busi, busj, ckt)
                 name = name.strip() or "{}-{}#{}".format(busi, busj, ckt)
                 content.append("def BRANCH_{}():".format(name.replace("-", "_").replace("#", "_")))
-                content.append('\t"F/S {}"'.format(name))
-                content.append("\tpsspy.branch_chng_3({},{},'{}', intgar1=0)".format(busi, busj, ckt))
+                content.append('    "F/S {}"'.format(name))
+                content.append("    psspy.branch_chng_3({},{},'{}', intgar1=0)".format(busi, busj, ckt))
+                content.append("")
+
+            if ms[0] == "SYS":
+                busi, busj, ckt = int(ms[1]), int(ms[2]), ms[3]
+                ierr, name = psspy.brnnam(busi, busj, ckt)
+                name = name.strip() or "{}-{}#{}".format(busi, busj, ckt)
+                content.append("def BRANCH_{}():".format(name.replace("-", "_").replace("#", "_")))
+                content.append('    "F/S {}"'.format(name))
+                content.append("    psspy.system_swd_chng({},{},'{}', intgar1=0)".format(busi, busj, ckt))
                 content.append("")
                    
 
@@ -284,15 +304,22 @@ class CustomACCCFileGenerator(object):
                 "_i = psspy.getdefaultint()\n"
                 "_f = psspy.getdefaultreal()\n"
                 "_s = psspy.getdefaultchar()\n\n"
+                "def base():\n"
+                "    \"CASO-BASE\"\n"
+                "    pass\n\n"
             )
-            
+
             current_txt = text_widget.get("1.0", tk.END).strip()
-            new_content = "\n".join(content)            
-            if current_txt.startswith(header.strip()):
-                full_txt = current_txt + "\n\n" + new_content
-            else:
-                body = ("\n" + current_txt) if current_txt else ""
-                full_txt = header + current_txt + "\n" + new_content
+            new_content = "\n".join(content)
+            header_text = header.strip()
+            if current_txt.startswith(header_text):
+                current_txt = current_txt[len(header_text):].lstrip()
+
+            sections = [header_text]
+            if current_txt:
+                sections.append(current_txt)
+            sections.append(new_content)
+            full_txt = "\n\n".join(sections)
 
             text_widget.delete("1.0", tk.END)
             text_widget.insert("1.0", full_txt + "\n")
