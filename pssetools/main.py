@@ -124,6 +124,7 @@ class PSSEAutomationApp(object):
         tools_menu = tk.Menu(menubar, tearoff=0)
         tools_menu.add_command(label="Config File Wizard...", command=self.open_config_wizard)        
         tools_menu.add_command(label="Custom ACCC File Wizard...", command=self.list_elements)        
+        tools_menu.add_command(label="Sensitivity Analysis...", command=self.open_sensitivity_analysis)
         menubar.add_cascade(label="Tools", menu=tools_menu)
 
         paths_menu = tk.Menu(menubar, tearoff=0)
@@ -755,6 +756,23 @@ class PSSEAutomationApp(object):
                 app.root.destroy()
             app.root.protocol("WM_DELETE_WINDOW", _on_secondary_close)
             app.exit = _on_secondary_close
+        except Exception as e:
+            self.root.deiconify()
+            TkMessageBox.showerror("Error", "No se pudo cargar la herramienta: {}".format(e))
+
+
+    def open_sensitivity_analysis(self):
+        try:
+            from pssetools.tools.sensibilidad import SensitivityAnalysisApp
+            self.root.iconify()
+            app = SensitivityAnalysisApp(self.root, temp_dir=self.state.workspace.temp_dir)
+
+            def _on_secondary_close():
+                self.root.deiconify()
+                app.root.destroy()
+
+            app.root.protocol("WM_DELETE_WINDOW", _on_secondary_close)
+            app.close = _on_secondary_close
         except Exception as e:
             self.root.deiconify()
             TkMessageBox.showerror("Error", "No se pudo cargar la herramienta: {}".format(e))

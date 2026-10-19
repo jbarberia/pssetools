@@ -1,0 +1,94 @@
+# coding: latin-1
+import os
+import re
+
+import pandas as pd
+
+
+_HEADER_RE = re.compile(
+    r"SENSITIVITY FACTORS OF BRANCH FLOW\s*\(([^)]+)\)\s+ON\s+"
+    r"(\d+)\s+(.+?)\s+([-+]?[0-9]+(?:\.[0-9]+)?)\s+TO\s+(.+)$",
+    re.IGNORECASE,
+)
+_SECTION_RE = re.compile(r"<[- ]*(GENERATOR BUS|LOAD BUS|BUS NAME)[ -]*>", re.IGNORECASE)
+
+
+def parse_sensitivity_report(report_file):
+    """Parse PSS/E sensitivity report blocks into a tabular DataFrame."""
+    with open(report_file, "r") as stream:
+        lines = stream.read().splitlines()
+
+    rows = []
+    header = {}
+    section = None
+    for line in lines:
+        header_match = _HEADER_RE.search(line.strip())
+        if header_match:
+            target_element = re.sub(r"\s+MORE THAN.*$", "", header_match.group(5), flags=re.IGNORECASE).strip()
+            header = {
+                "FLOW_TYPE": header_match.group(1).strip(),
+                "FROM_BUS": int(header_match.group(2)),
+                "FROM_BUS_NAME": header_match.group(3).strip(),
+                "FROM_BUS_KV": float(header_match.group(4)),
+                "TO_ELEMENT": target_element,
+            }
+            section = None
+            continue
+
+        section_match = _SECTION_RE.search(line)
+        if section_match:
+            section = section_match.group(1).upper()
+            continue
+
+        if section not in ("GENERATOR BUS", "LOAD BUS", "BUS NAME"):
+            continue
+
+        fields = line.strip().split()
+        if len(fields) < 4 or not fields[0].isdigit():
+            continue
+
+        try:
+            bus = int(fields[0])
+            sensitivity = float(fields[-1])
+        except ValueError:
+            continue
+
+        row = dict(header)
+        row.update({
+            "ELEMENT_TYPE": section,
+            "BUS": bus,
+            "BUS_NAME": " ".join(fields[1:-1]),
+            "SENSITIVITY": sensitivity,
+        })
+        if section == "BUS NAME" and len(fields) >= 4:
+            row["BUS_KV"] = float(fields[-2])
+            row["BUS_NAME"] = " ".join(fields[1:-2])
+        elif section == "GENERATOR BUS" and len(fields) >= 6:
+            row.update({
+                "BUS_KV": float(fields[-5]),
+                "PGEN_MW": float(fields[-4]),
+                "PMAX_MW": float(fields[-3]),
+                "PMIN_MW": float(fields[-2]),
+            })
+        elif section == "LOAD BUS" and len(fields) >= 4:
+            row["BUS_KV"] = float(fields[-2])
+            row["LOAD_MW"] = float(fields[-1]) if len(fields) == 4 else float(fields[-2])
+            if len(fields) > 4:
+                row["SENSITIVITY"] = sensitivity
+                row["BUS_KV"] = float(fields[-3])
+                row["LOAD_MW"] = float(fields[-2])
+        rows.append(row)
+
+    columns = [
+        "FROM_BUS", "FROM_BUS_NAME", "FROM_BUS_KV", "TO_ELEMENT", "FLOW_TYPE",
+        "ELEMENT_TYPE", "BUS", "BUS_NAME", "BUS_KV", "PGEN_MW", "PMAX_MW",
+        "PMIN_MW", "LOAD_MW", "SENSITIVITY",
+    ]
+    return pd.DataFrame(rows, columns=columns)
+
+
+def save_sensitivity_table(report_file, output_file):
+    """Parse a PSS/E report and save its normalized table as an Excel file."""
+    table = parse_sensitivity_report(report_file)
+    table.to_excel(output_file, index=False)
+    return table

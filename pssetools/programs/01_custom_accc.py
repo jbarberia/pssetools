@@ -77,7 +77,8 @@ class ACCCProgram(BaseProgram):
         dfs = []
         for case in cases:
             for nombre_ctg, funcion_ctg in LISTA_CONTINGENCIAS.items():    
-                psspy.case(case)
+                ierr = psspy.case(case)
+                if ierr != 0: return
                 assert psspy.solved() == 0
                 
                 funcion_ctg()
