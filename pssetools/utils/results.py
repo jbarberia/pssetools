@@ -3,6 +3,7 @@ import pandas as pd
 
 
 def get_results_from_case(mon_file):
+    "archivo de monitoreo como TSV"
     import psspy
     df = pd.read_csv(mon_file, sep="\t", encoding="latin-1", header=0, skiprows=0, skipinitialspace=True, dtype=str)
     df.columns = ["ELEMENTO", "ID1", "ID2", "ID3", "ID4", "DESCRIPCION"]

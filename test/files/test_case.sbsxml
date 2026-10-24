@@ -1,0 +1,18 @@
+<SBS_Settings>
+   <Subsystem_Settings>
+      <General UsekV="0" kVRange="1,000  9999,000" />
+      <Area />
+      <Bus>
+         <Number>1</Number>
+         <Number>2</Number>
+      </Bus>
+      <Owner />
+      <Zone />
+   </Subsystem_Settings>
+   <BusFilter_Settings>
+      <General Filtered="0" Bustype="0" Mask="*" Range="0  0" kVRange="0,000  0,000" />
+      <Area />
+      <Owner />
+      <Zone />
+   </BusFilter_Settings>
+</SBS_Settings>
