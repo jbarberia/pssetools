@@ -11,7 +11,10 @@ import os
 import pandas as pd
 
 from pssetools.programs import BaseProgram
-from pssetools.utils.sensitivity_report import parse_sensitivity_report, save_sensitivity_table
+from pssetools.utils.sensitivity_report import (
+    parse_sensitivity_report, save_sensitivity_table, write_sensitivity_excel,
+    _EMPTY_TABLES,
+)
 
 
 
@@ -192,7 +195,8 @@ class SensitivityProgram(BaseProgram):
         options = [1, 1, 1, 1, 1, 1, 1, opp_type, opp_val]
         values = [0.5, 0.001]
 
-        dfs = []
+        keys = list(_EMPTY_TABLES.keys())
+        dfs = {k: [] for k in keys}
         combined_report_lines = []
 
         for case in cases:
@@ -235,22 +239,32 @@ class SensitivityProgram(BaseProgram):
             finally:
                 psspy.t_report_output(6, "", [0, 0])
 
+
             if os.path.exists(case_report_txt):
                 with open(case_report_txt, "r") as rf:
                     combined_report_lines.append(rf.read())
-                df_case = parse_sensitivity_report(case_report_txt)
-                if not df_case.empty:
-                    df_case.insert(0, "CASO", base)
-                    dfs.append(df_case)
+                case_tables = parse_sensitivity_report(case_report_txt)
+                for key in keys:
+                    df = case_tables[key]
+                    if not df.empty:
+                        df = df.copy()
+                        df.insert(0, "CASO", base)
+                        dfs[key].append(df)
 
         main_report_file = os.path.join(temp_dir, "sensitivity_report.txt")
         with open(main_report_file, "w") as f:
             f.write("\n".join(combined_report_lines))
 
         table_file = os.path.join(output_dir, "sensitivity_report.xlsx")
-        if dfs:
-            final_df = pd.concat(dfs, ignore_index=True)
-            final_df.to_excel(table_file, index=False)
+        any_data = any(dfs[k] for k in keys)
+        if any_data:
+            final_tables = {}
+            for key in keys:
+                if dfs[key]:
+                    final_tables[key] = pd.concat(dfs[key], ignore_index=True)
+                else:
+                    final_tables[key] = pd.DataFrame(columns=["CASO"] + _EMPTY_TABLES[key])
+            write_sensitivity_excel(final_tables, table_file)
         else:
             save_sensitivity_table(main_report_file, table_file)
         print("Sensitivity analysis completed. Results saved to: {}".format(table_file))

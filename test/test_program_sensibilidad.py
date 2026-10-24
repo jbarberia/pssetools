@@ -56,13 +56,20 @@ def test_sensitivity_full_flow():
         assert os.path.exists(report_txt), "No se genero el archivo sensitivity_report.txt"
         assert os.path.exists(report_xlsx), "No se genero el archivo sensitivity_report.xlsx"
 
-        # Verificar que el excel no esté vacío
-        df_report = pd.read_excel(report_xlsx)
-        assert not df_report.empty, "El archivo sensitivity_report.xlsx esta vacio"
-        assert "CASO" in df_report.columns, "Falta la columna CASO en el excel"
-        assert "SENSITIVITY" in df_report.columns, "Falta la columna SENSITIVITY en el excel"
+        # Verificar que el excel tenga las 4 hojas esperadas
+        expected_sheets = ["BUS NAME", "LOAD BUS", "TAP TRANSFORMERS", "SWITCHED SHUNTS"]
+        xl = pd.ExcelFile(report_xlsx)
+        for sheet in expected_sheets:
+            assert sheet in xl.sheet_names, "Falta la hoja '{}' en el excel".format(sheet)
+
+        df_bus = pd.read_excel(report_xlsx, sheet_name="BUS NAME")
+        assert not df_bus.empty, "La hoja BUS NAME esta vacia"
+        assert "ELEMENTO" in df_bus.columns, "Falta la columna ELEMENTO en BUS NAME"
+        assert "CASO" in df_bus.columns, "Falta la columna CASO en BUS NAME"
+        assert "MW_SENS" in df_bus.columns, "Falta la columna MW_SENS en BUS NAME"
 
     finally:
         pass
+
 
 
