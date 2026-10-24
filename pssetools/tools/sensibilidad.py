@@ -19,7 +19,11 @@ from pssetools.utils.sensitivity_report import save_sensitivity_table
 
 
 class SensitivityAnalysisApp(object):
-	"""Ventana de configuracion para el analisis de sensibilidad de PSS/E."""
+	"""Ventana de configuracion y ejecucion de sensibilidad de PSS/E.
+
+	La ventana usa las APIs ``sensitivity_*`` de ``psspy`` y redirige cada
+	reporte a ``temp_dir`` antes de convertirlo a una tabla Excel.
+	"""
 
 	def __init__(self, parent, temp_dir=None):
 		if not sys.argv:
@@ -433,6 +437,7 @@ class SensitivityAnalysisApp(object):
 			tkMessageBox.showerror("DFAX", "No se pudo generar el archivo:\n{}".format(error), parent=dialog)
 
 	def solve(self):
+		"""Ejecutar la sensibilidad y exportar el reporte textual y tabular."""
 		dfx_path = self.dfx_path.get().strip()
 		if not dfx_path:
 			tkMessageBox.showwarning("Sensitivity Analysis", "Select a distribution factor data file first.")

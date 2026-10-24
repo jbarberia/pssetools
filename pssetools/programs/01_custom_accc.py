@@ -70,7 +70,7 @@ class ACCCProgram(BaseProgram):
         LISTA_CONTINGENCIAS = {
             nombre: func 
             for nombre, func in inspect.getmembers(contingencies, inspect.isfunction)
-            if func.__module__ == nombre_modulo
+            if func.__module__ == nombre_modulo and not nombre.startswith('_')
         }
 
         # corre flujos de carga

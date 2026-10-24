@@ -50,3 +50,60 @@ pssetools.gui()
 ```
 
 ![assets/gui.png](assets/gui.png)
+
+## Analisis de sensibilidad
+
+La herramienta se abre desde `Tools > Sensitivity Analysis...` dentro de la
+interfaz principal. Debe ejecutarse en el interprete de Python asociado a la
+instalacion activa de PSS/E, con un caso cargado cuando se seleccionan ramas,
+barras o interfaces.
+
+### Archivo DFX
+
+El boton `DFAX...` permite generar o regenerar el archivo de factores de
+distribucion. El dialogo recibe:
+
+* archivo de subsistemas (`.sub`);
+* archivo de elementos monitoreados (`.mon`);
+* archivo de contingencias (`.con`);
+* archivo de salida (`.dfx`).
+
+Al seleccionar un DFX existente, la herramienta intenta recuperar desde su
+metadata los archivos `.sub`, `.mon` y `.con` asociados. Las casillas de
+ordenamiento y monitoreo de lineas fuera de servicio aparecen activadas por
+defecto.
+
+### Calculo y resultados
+
+`Solve` utiliza las APIs nativas de PSS/E según el dispositivo elegido:
+
+* `sensitivity_flow` para una rama o transformador;
+* `sensitivity_flows` para ramas de un subsistema;
+* `sensitivity_voltage` para una barra;
+* `sensitivity_voltages` para barras de un subsistema;
+* `sensitivity_interface` para una interfaz.
+
+El reporte textual se escribe en el directorio temporal configurado en
+`Paths > Configure Paths...` como `sensitivity_report.txt`. Luego se procesa
+como tabla Excel en `sensitivity_report.xlsx`.
+
+Las primeras columnas identifican el elemento estudiado:
+
+| Columna | Descripcion |
+| --- | --- |
+| `FROM_BUS` | Numero de la barra de origen |
+| `FROM_BUS_NAME` | Nombre de la barra de origen |
+| `FROM_BUS_KV` | Nivel de tension de la barra de origen |
+| `TO_ELEMENT` | Rama, transformador o interfaz estudiada |
+| `BUS`, `BUS_NAME` | Barra que aporta el factor de sensibilidad |
+| `SENSITIVITY` | Factor calculado por PSS/E |
+
+Para exportar a Excel se requiere `pandas` y `openpyxl`. El parser tambien
+reconoce reportes con secciones `GENERATOR BUS`, `LOAD BUS` y `BUS NAME`.
+
+## Estructura del proyecto
+
+* `pssetools/main.py`: ventana principal y descubrimiento dinamico de programas.
+* `pssetools/programs/`: programas ejecutables que heredan de `BaseProgram`.
+* `pssetools/tools/`: asistentes graficos para tareas interactivas de PSS/E.
+* `pssetools/utils/`: funciones de procesamiento, exportacion y parsing.

@@ -68,6 +68,8 @@ def get_branch_data(row):
     import psspy
     ibus, jbus, ckt = int(row["ID1"]), int(row["ID2"]), row["ID3"]
     ierr, mva    = psspy.brnflo(ibus, jbus, ckt)
+    if ierr != 0: 
+        return []
     ierr, amps   = psspy.brnmsc(ibus, jbus, ckt, "AMPS")
     ierr, pctrta = psspy.brnmsc(ibus, jbus, ckt, "PCTRTA")
     ierr, rate1  = psspy.brndat(ibus, jbus, ckt, "RATE1")
@@ -80,7 +82,7 @@ def get_branch_data(row):
             "ID3": row["ID3"],
             "ID4": None,
             "VARIABLE": "MVAr",
-            "VALOR": mva.real,
+            "VALOR": mva.imag,
         },
         {
             "ELEMENTO": row["ELEMENTO"],
@@ -89,7 +91,7 @@ def get_branch_data(row):
             "ID3": row["ID3"],
             "ID4": None,
             "VARIABLE": "MW",
-            "VALOR": mva.imag,
+            "VALOR": mva.real,
         },
         {
             "ELEMENTO": row["ELEMENTO"],
@@ -216,6 +218,7 @@ def get_3w_transformer_data(row):
 def get_load_data(row):
     import psspy
     ierr, mva = psspy.loddt2(int(row["ID1"]), row["ID2"], "ACT", "TOTAL")
+    if ierr != 0: return []
 
     return [
         {

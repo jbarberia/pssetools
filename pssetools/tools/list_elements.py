@@ -278,13 +278,22 @@ class CustomACCCFileGenerator(object):
                 content.append("    psspy.three_wnd_imped_chng_4({},{},{},'{}', intgar8=0)".format(busi, busj, busk, ckt))
                 content.append("")
                 
-            if ms[0] in ["TR", "LII"]:
+            if ms[0] in ["LII"]:
                 busi, busj, ckt = int(ms[1]), int(ms[2]), ms[3]
                 ierr, name = psspy.brnnam(busi, busj, ckt)
                 name = name.strip() or "{}-{}#{}".format(busi, busj, ckt)
                 content.append("def BRANCH_{}():".format(name.replace("-", "_").replace("#", "_")))
                 content.append('    "F/S {}"'.format(name))
                 content.append("    psspy.branch_chng_3({},{},'{}', intgar1=0)".format(busi, busj, ckt))
+                content.append("")
+
+            if ms[0] in ["TR"]:
+                busi, busj, ckt = int(ms[1]), int(ms[2]), ms[3]
+                ierr, name = psspy.brnnam(busi, busj, ckt)
+                name = name.strip() or "{}-{}#{}".format(busi, busj, ckt)
+                content.append("def BRANCH_{}():".format(name.replace("-", "_").replace("#", "_")))
+                content.append('    "F/S {}"'.format(name))
+                content.append("    psspy.two_winding_chng_6({},{},'{}', intgar1=0)".format(busi, busj, ckt))
                 content.append("")
 
             if ms[0] == "SYS":
