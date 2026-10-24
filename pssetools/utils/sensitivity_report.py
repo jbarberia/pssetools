@@ -17,6 +17,11 @@ _HEADER_RE = re.compile(
     r"(\d+)\s+(.+?)\s+([-+]?[0-9]+(?:\.[0-9]+)?)\s+TO\s+(.+)$",
     re.IGNORECASE,
 )
+_VOLT_HEADER_RE = re.compile(
+    r"SENSITIVITY FACTORS OF BUS VOLTAGE\s*\(([^)]+)\)\s+AT THE BUS\s+"
+    r"(\d+)\s+(?:(.*?)\s+)?([-+]?[0-9]+(?:\.[0-9]+)?)\s+MORE THAN",
+    re.IGNORECASE,
+)
 _SECTION_RE = re.compile(r"<[- ]*(GENERATOR BUS|LOAD BUS|BUS NAME)[ -]*>", re.IGNORECASE)
 
 
@@ -31,6 +36,13 @@ def parse_sensitivity_report(report_file):
         such as ``FROM_BUS`` and ``FROM_BUS_NAME`` are repeated on each row.
         Empty report sections result in an empty DataFrame with stable columns.
     """
+    if not os.path.exists(report_file):
+        return pd.DataFrame(columns=[
+            "FROM_BUS", "FROM_BUS_NAME", "FROM_BUS_KV", "TO_ELEMENT", "FLOW_TYPE",
+            "ELEMENT_TYPE", "BUS", "BUS_NAME", "BUS_KV", "PGEN_MW", "PMAX_MW",
+            "PMIN_MW", "LOAD_MW", "SENSITIVITY", "MVAR_SENSITIVITY",
+        ])
+
     with open(report_file, "r") as stream:
         lines = stream.read().splitlines()
 
@@ -51,6 +63,18 @@ def parse_sensitivity_report(report_file):
             section = None
             continue
 
+        volt_match = _VOLT_HEADER_RE.search(line.strip())
+        if volt_match:
+            header = {
+                "FLOW_TYPE": "VOLTAGE ({})".format(volt_match.group(1).strip()),
+                "FROM_BUS": int(volt_match.group(2)),
+                "FROM_BUS_NAME": volt_match.group(3).strip() if volt_match.group(3) else "",
+                "FROM_BUS_KV": float(volt_match.group(4)),
+                "TO_ELEMENT": "BUS {}".format(volt_match.group(2)),
+            }
+            section = None
+            continue
+
         section_match = _SECTION_RE.search(line)
         if section_match:
             section = section_match.group(1).upper()
@@ -60,7 +84,7 @@ def parse_sensitivity_report(report_file):
             continue
 
         fields = line.strip().split()
-        if len(fields) < 4 or not fields[0].isdigit():
+        if len(fields) < 3 or not fields[0].isdigit():
             continue
 
         try:
@@ -75,10 +99,18 @@ def parse_sensitivity_report(report_file):
             "BUS": bus,
             "BUS_NAME": " ".join(fields[1:-1]),
             "SENSITIVITY": sensitivity,
+            "MVAR_SENSITIVITY": None,
         })
-        if section == "BUS NAME" and len(fields) >= 4:
-            row["BUS_KV"] = float(fields[-2])
-            row["BUS_NAME"] = " ".join(fields[1:-2])
+        is_voltage = header.get("FLOW_TYPE", "").startswith("VOLTAGE")
+        if section == "BUS NAME":
+            if is_voltage and len(fields) >= 4:
+                row["BUS_KV"] = float(fields[-3])
+                row["BUS_NAME"] = " ".join(fields[1:-3])
+                row["SENSITIVITY"] = float(fields[-2])
+                row["MVAR_SENSITIVITY"] = float(fields[-1])
+            elif len(fields) >= 4:
+                row["BUS_KV"] = float(fields[-2])
+                row["BUS_NAME"] = " ".join(fields[1:-2])
         elif section == "GENERATOR BUS" and len(fields) >= 6:
             row.update({
                 "BUS_KV": float(fields[-5]),
@@ -86,19 +118,26 @@ def parse_sensitivity_report(report_file):
                 "PMAX_MW": float(fields[-3]),
                 "PMIN_MW": float(fields[-2]),
             })
-        elif section == "LOAD BUS" and len(fields) >= 4:
-            row["BUS_KV"] = float(fields[-2])
-            row["LOAD_MW"] = float(fields[-1]) if len(fields) == 4 else float(fields[-2])
-            if len(fields) > 4:
-                row["SENSITIVITY"] = sensitivity
-                row["BUS_KV"] = float(fields[-3])
-                row["LOAD_MW"] = float(fields[-2])
+        elif section == "LOAD BUS":
+            if is_voltage and len(fields) >= 6:
+                row["BUS_KV"] = float(fields[-5])
+                row["BUS_NAME"] = " ".join(fields[1:-5])
+                row["LOAD_MW"] = float(fields[-4])
+                row["SENSITIVITY"] = float(fields[-2])
+                row["MVAR_SENSITIVITY"] = float(fields[-1])
+            elif len(fields) >= 4:
+                row["BUS_KV"] = float(fields[-2])
+                row["LOAD_MW"] = float(fields[-1]) if len(fields) == 4 else float(fields[-2])
+                if len(fields) > 4:
+                    row["SENSITIVITY"] = sensitivity
+                    row["BUS_KV"] = float(fields[-3])
+                    row["LOAD_MW"] = float(fields[-2])
         rows.append(row)
 
     columns = [
         "FROM_BUS", "FROM_BUS_NAME", "FROM_BUS_KV", "TO_ELEMENT", "FLOW_TYPE",
         "ELEMENT_TYPE", "BUS", "BUS_NAME", "BUS_KV", "PGEN_MW", "PMAX_MW",
-        "PMIN_MW", "LOAD_MW", "SENSITIVITY",
+        "PMIN_MW", "LOAD_MW", "SENSITIVITY", "MVAR_SENSITIVITY",
     ]
     return pd.DataFrame(rows, columns=columns)
 
