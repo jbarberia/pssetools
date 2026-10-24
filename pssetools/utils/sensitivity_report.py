@@ -36,10 +36,10 @@ _SEC_RE = re.compile(
 # Column definitions (empty frames)
 # ---------------------------------------------------------------------------
 _EMPTY_TABLES = {
-    "bus_name": ["VARIABLE", "ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "MW_SENS", "MVAR_SENS"],
-    "load_bus": ["VARIABLE", "ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "LOAD_MW", "LOAD_MVAR", "MW_SENS", "MVAR_SENS"],
-    "tap_transformers": ["VARIABLE", "ELEMENTO", "FROM_BUS", "FROM_NAME", "FROM_KV", "TO_BUS", "TO_NAME", "TO_KV", "CKT", "TAP", "RMAX", "RMIN", "SENS"],
-    "switched_shunts": ["VARIABLE", "ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "BINT", "BMAX", "BMIN", "SENS"],
+    "bus_name": ["VARIABLE", "ELEMENTO", "BUS", "MW_SENS", "MVAR_SENS"],
+    "load_bus": ["VARIABLE", "ELEMENTO", "BUS", "LOAD_MW", "LOAD_MVAR", "MW_SENS", "MVAR_SENS"],
+    "tap_transformers": ["VARIABLE", "ELEMENTO", "BRANCH", "TAP", "RMAX", "RMIN", "SENS"],
+    "switched_shunts": ["VARIABLE", "ELEMENTO", "BUS", "BINT", "BMAX", "BMIN", "SENS"],
 }
 
 _SHEET_NAMES = {
@@ -62,7 +62,7 @@ def _parse_branch_header(m):
     return {
         "elem_kind": "BRANCH",
         "variable": var_type,
-        "raw_element": m.group(2)
+        "raw_element": m.group(2).strip()
     }
 
 def _parse_volt_header(m):
@@ -71,7 +71,7 @@ def _parse_volt_header(m):
     return {
         "elem_kind": "VOLTAGE",
         "variable": var_type,
-        "raw_element": m.group(2)
+        "raw_element": m.group(2).strip()
     }
 
 
@@ -80,39 +80,43 @@ def _parse_volt_header(m):
 # ---------------------------------------------------------------------------
 def _parse_bus_name(fields, is_voltage):
     """bus name... kv mw_sens [mvar_sens]"""
-    bus = int(fields[0])
+    bus = fields[0]
     if is_voltage:
         mvar = float(fields[-1])
         mw = float(fields[-2])
-        kv = float(fields[-3])
+        kv = fields[-3]
         name = " ".join(fields[1:-3])
-        return {"BUS": bus, "BUS_NAME": name, "BUS_KV": kv, "MW_SENS": mw, "MVAR_SENS": mvar}
+        combined_bus = "{} {} {}".format(bus, name, kv)
+        return {"BUS": combined_bus, "MW_SENS": mw, "MVAR_SENS": mvar}
     else:
         mw = float(fields[-1])
-        kv = float(fields[-2])
+        kv = fields[-2]
         name = " ".join(fields[1:-2])
-        return {"BUS": bus, "BUS_NAME": name, "BUS_KV": kv, "MW_SENS": mw, "MVAR_SENS": None}
+        combined_bus = "{} {} {}".format(bus, name, kv)
+        return {"BUS": combined_bus, "MW_SENS": mw, "MVAR_SENS": None}
 
 
 def _parse_load_bus(fields, is_voltage):
     """bus name... kv load_mw [load_mvar] mw_sens [mvar_sens]"""
-    bus = int(fields[0])
+    bus = fields[0]
     if is_voltage and len(fields) >= 7:
         mvar_sens = float(fields[-1])
         mw_sens = float(fields[-2])
         load_mvar = float(fields[-3])
         load_mw = float(fields[-4])
-        kv = float(fields[-5])
+        kv = fields[-5]
         name = " ".join(fields[1:-5])
-        return {"BUS": bus, "BUS_NAME": name, "BUS_KV": kv,
+        combined_bus = "{} {} {}".format(bus, name, kv)
+        return {"BUS": combined_bus, 
                 "LOAD_MW": load_mw, "LOAD_MVAR": load_mvar,
                 "MW_SENS": mw_sens, "MVAR_SENS": mvar_sens}
     elif len(fields) >= 5:
         mw_sens = float(fields[-1])
         load_mw = float(fields[-2])
-        kv = float(fields[-3])
+        kv = fields[-3]
         name = " ".join(fields[1:-3])
-        return {"BUS": bus, "BUS_NAME": name, "BUS_KV": kv,
+        combined_bus = "{} {} {}".format(bus, name, kv)
+        return {"BUS": combined_bus, 
                 "LOAD_MW": load_mw, "LOAD_MVAR": None,
                 "MW_SENS": mw_sens, "MVAR_SENS": None}
     return None
@@ -127,49 +131,60 @@ def _parse_tap_line(fields):
     ckt = fields[-5]
     rest = fields[:-5]
     
-    from_bus = int(rest[0])
+    from_bus = rest[0]
     i = 1
     from_name_parts = []
-    from_kv = None
+    from_kv = ""
     while i < len(rest):
         try:
-            from_kv = float(rest[i])
+            _ = float(rest[i]) # Verify it's a float
+            from_kv = rest[i]
             i += 1
             break
         except ValueError:
             from_name_parts.append(rest[i])
             i += 1
             
-    to_bus = int(rest[i]) if i < len(rest) and rest[i].isdigit() else None
+    to_bus = rest[i] if i < len(rest) and rest[i].isdigit() else ""
     i += 1
     to_name_parts = []
-    to_kv = None
+    to_kv = ""
     while i < len(rest):
         try:
-            to_kv = float(rest[i])
+            _ = float(rest[i]) # Verify it's a float
+            to_kv = rest[i]
             i += 1
             break
         except ValueError:
             to_name_parts.append(rest[i])
             i += 1
             
+    from_name = " ".join(from_name_parts)
+    to_name = " ".join(to_name_parts)
+    
+    combined_from = "{} {} {}".format(from_bus, from_name, from_kv).strip()
+    combined_to = "{} {} {}".format(to_bus, to_name, to_kv).strip()
+    combined_branch = "{} TO {} CKT {}".format(combined_from, combined_to, ckt)
+    
     return {
-        "FROM_BUS": from_bus, "FROM_NAME": " ".join(from_name_parts), "FROM_KV": from_kv,
-        "TO_BUS": to_bus, "TO_NAME": " ".join(to_name_parts), "TO_KV": to_kv,
-        "CKT": ckt, "TAP": tap, "RMAX": rmax, "RMIN": rmin, "SENS": sens,
+        "BRANCH": combined_branch,
+        "TAP": tap, "RMAX": rmax, "RMIN": rmin, "SENS": sens,
     }
 
 
 def _parse_shunt_line(fields):
     """bus name... kv bint bmax bmin sens"""
-    bus = int(fields[0])
+    bus = fields[0]
     sens = float(fields[-1])
     bmin = float(fields[-2])
     bmax = float(fields[-3])
     bint = float(fields[-4])
-    kv = float(fields[-5])
+    kv = fields[-5]
     name = " ".join(fields[1:-5])
-    return {"BUS": bus, "BUS_NAME": name, "BUS_KV": kv,
+    
+    combined_bus = "{} {} {}".format(bus, name, kv)
+    
+    return {"BUS": combined_bus,
             "BINT": bint, "BMAX": bmax, "BMIN": bmin, "SENS": sens}
 
 
