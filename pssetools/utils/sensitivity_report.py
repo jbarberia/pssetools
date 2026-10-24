@@ -7,30 +7,26 @@ Returns a dict of four DataFrames (one per PSS/E report subsection):
   - tap_transformers: sensitivities from tap-changing transformers
   - switched_shunts : sensitivities from switched shunts
 
-All DataFrames have ELEMENTO as the first column, a descriptive label
-of the monitored element (bus voltage or branch flow + flow type).
+All DataFrames have VARIABLE and ELEMENTO as the first columns.
 """
 
 import os
 import re
-
 import pandas as pd
-
 
 # ---------------------------------------------------------------------------
 # Header regexes
 # ---------------------------------------------------------------------------
-
 _BRANCH_HDR = re.compile(
-    r"SENSITIVITY FACTORS OF BRANCH FLOW\s*\(([^)]+)\)\s+ON\s+"
-    r"(\d+)\s+(.+?)\s+([\d.]+)\s+TO\s+(.+?)$",
+    r"SENSITIVITY FACTORS OF BRANCH FLOW\s*\(([^)]+)\)\s+ON(.*)MORE THAN",
     re.IGNORECASE,
 )
+
 _VOLT_HDR = re.compile(
-    r"SENSITIVITY FACTORS OF BUS VOLTAGE\s*\(([^)]+)\)\s+AT THE BUS\s+"
-    r"(\d+)\s+(.*?)\s+([\d.]+)\s+MORE THAN",
+    r"SENSITIVITY FACTORS OF BUS VOLTAGE\s*\(([^)]+)\)\s+AT THE BUS(.*?)MORE THAN",
     re.IGNORECASE,
 )
+
 _SEC_RE = re.compile(
     r"<[- ]*(BUS NAME|LOAD BUS|GENERATOR BUS|TAP CHANGING TRANSFORMERS|SWITCHED SHUNTS)[ -]*>",
     re.IGNORECASE,
@@ -39,12 +35,11 @@ _SEC_RE = re.compile(
 # ---------------------------------------------------------------------------
 # Column definitions (empty frames)
 # ---------------------------------------------------------------------------
-
 _EMPTY_TABLES = {
-    "bus_name": ["ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "MW_SENS", "MVAR_SENS"],
-    "load_bus": ["ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "LOAD_MW", "LOAD_MVAR", "MW_SENS", "MVAR_SENS"],
-    "tap_transformers": ["ELEMENTO", "FROM_BUS", "FROM_NAME", "FROM_KV", "TO_BUS", "TO_NAME", "TO_KV", "CKT", "TAP", "RMAX", "RMIN", "SENS"],
-    "switched_shunts": ["ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "BINT", "BMAX", "BMIN", "SENS"],
+    "bus_name": ["VARIABLE", "ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "MW_SENS", "MVAR_SENS"],
+    "load_bus": ["VARIABLE", "ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "LOAD_MW", "LOAD_MVAR", "MW_SENS", "MVAR_SENS"],
+    "tap_transformers": ["VARIABLE", "ELEMENTO", "FROM_BUS", "FROM_NAME", "FROM_KV", "TO_BUS", "TO_NAME", "TO_KV", "CKT", "TAP", "RMAX", "RMIN", "SENS"],
+    "switched_shunts": ["VARIABLE", "ELEMENTO", "BUS", "BUS_NAME", "BUS_KV", "BINT", "BMAX", "BMIN", "SENS"],
 }
 
 _SHEET_NAMES = {
@@ -54,90 +49,35 @@ _SHEET_NAMES = {
     "switched_shunts": "SWITCHED SHUNTS",
 }
 
-
 def _empty_result():
     return {k: pd.DataFrame(columns=v) for k, v in _EMPTY_TABLES.items()}
 
 
 # ---------------------------------------------------------------------------
-# Label helpers
-# ---------------------------------------------------------------------------
-
-def _fmt_kv(kv):
-    """Format a kV value as integer if whole, otherwise as float."""
-    if kv is None:
-        return ""
-    return str(int(kv)) if kv == int(kv) else str(kv)
-
-
-def _make_label(header):
-    """Build a human-readable element label from a parsed header dict."""
-    ft = header["flow_type"]
-    if header["elem_kind"] == "VOLTAGE":
-        return "V({}) - BUS {} {} {}kV".format(
-            ft,
-            header["from_bus"],
-            header["from_name"],
-            _fmt_kv(header["from_kv"]),
-        )
-    else:
-        return "BRANCH {} - {} {} {}kV -> {} {} {}kV CKT {}".format(
-            ft,
-            header["from_bus"],
-            header["from_name"],
-            _fmt_kv(header.get("from_kv")),
-            header["to_bus"],
-            header["to_name"],
-            _fmt_kv(header.get("to_kv")),
-            header.get("ckt", ""),
-        ).strip()
-
-
-# ---------------------------------------------------------------------------
 # Header parsers
 # ---------------------------------------------------------------------------
-
 def _parse_branch_header(m):
-    to_raw = re.sub(r"\s+MORE THAN.*$", "", m.group(5), flags=re.IGNORECASE).strip()
-    parts = to_raw.split()
-    to_bus = int(parts[0]) if parts and parts[0].isdigit() else None
-    to_kv = None
-    ckt = None
-    to_name = ""
-    if len(parts) >= 3:
-        try:
-            ckt = parts[-1]
-            to_kv = float(parts[-2])
-            to_name = " ".join(parts[1:-2])
-        except ValueError:
-            to_name = " ".join(parts[1:])
+    ft = m.group(1).strip()
+    var_type = "V" if ft.lower() == "pu" else ft.upper()
     return {
         "elem_kind": "BRANCH",
-        "flow_type": m.group(1).strip(),
-        "from_bus": int(m.group(2)),
-        "from_name": m.group(3).strip(),
-        "from_kv": float(m.group(4)),
-        "to_bus": to_bus,
-        "to_name": to_name,
-        "to_kv": to_kv,
-        "ckt": ckt,
+        "variable": var_type,
+        "raw_element": m.group(2)
     }
 
-
 def _parse_volt_header(m):
+    ft = m.group(1).strip()
+    var_type = "V" if ft.lower() == "pu" else ft.upper()
     return {
         "elem_kind": "VOLTAGE",
-        "flow_type": m.group(1).strip(),
-        "from_bus": int(m.group(2)),
-        "from_name": (m.group(3) or "").strip(),
-        "from_kv": float(m.group(4)),
+        "variable": var_type,
+        "raw_element": m.group(2)
     }
 
 
 # ---------------------------------------------------------------------------
 # Data line parsers (one per subsection type)
 # ---------------------------------------------------------------------------
-
 def _parse_bus_name(fields, is_voltage):
     """bus name... kv mw_sens [mvar_sens]"""
     bus = int(fields[0])
@@ -186,7 +126,7 @@ def _parse_tap_line(fields):
     tap = float(fields[-4])
     ckt = fields[-5]
     rest = fields[:-5]
-
+    
     from_bus = int(rest[0])
     i = 1
     from_name_parts = []
@@ -199,7 +139,7 @@ def _parse_tap_line(fields):
         except ValueError:
             from_name_parts.append(rest[i])
             i += 1
-
+            
     to_bus = int(rest[i]) if i < len(rest) and rest[i].isdigit() else None
     i += 1
     to_name_parts = []
@@ -212,7 +152,7 @@ def _parse_tap_line(fields):
         except ValueError:
             to_name_parts.append(rest[i])
             i += 1
-
+            
     return {
         "FROM_BUS": from_bus, "FROM_NAME": " ".join(from_name_parts), "FROM_KV": from_kv,
         "TO_BUS": to_bus, "TO_NAME": " ".join(to_name_parts), "TO_KV": to_kv,
@@ -236,13 +176,12 @@ def _parse_shunt_line(fields):
 # ---------------------------------------------------------------------------
 # Main parser
 # ---------------------------------------------------------------------------
-
 def parse_sensitivity_report(report_file):
     """Parse a PSS/E sensitivity report into a dict of 4 DataFrames.
 
     Returns:
         dict with keys: bus_name, load_bus, tap_transformers, switched_shunts.
-        Each value is a DataFrame with ELEMENTO as the first column.
+        Each value is a DataFrame with VARIABLE and ELEMENTO as the first columns.
     """
     if not os.path.exists(report_file):
         return _empty_result()
@@ -257,13 +196,13 @@ def parse_sensitivity_report(report_file):
     for line in lines:
         stripped = line.strip()
 
-        bm = _BRANCH_HDR.search(stripped)
+        bm = _BRANCH_HDR.search(line)
         if bm:
             header = _parse_branch_header(bm)
             section = None
             continue
 
-        vm = _VOLT_HDR.search(stripped)
+        vm = _VOLT_HDR.search(line)
         if vm:
             header = _parse_volt_header(vm)
             section = None
@@ -281,31 +220,32 @@ def parse_sensitivity_report(report_file):
         if not fields or not fields[0].isdigit():
             continue
 
-        label = _make_label(header)
+        label = header["raw_element"]
+        var_type = header["variable"]
         is_voltage = header["elem_kind"] == "VOLTAGE"
 
         try:
             if section == "BUS NAME":
                 row = _parse_bus_name(fields, is_voltage)
                 row["ELEMENTO"] = label
+                row["VARIABLE"] = var_type
                 rows["bus_name"].append(row)
-
             elif section == "LOAD BUS":
                 row = _parse_load_bus(fields, is_voltage)
                 if row is not None:
                     row["ELEMENTO"] = label
+                    row["VARIABLE"] = var_type
                     rows["load_bus"].append(row)
-
             elif section == "TAP CHANGING TRANSFORMERS":
                 row = _parse_tap_line(fields)
                 row["ELEMENTO"] = label
+                row["VARIABLE"] = var_type
                 rows["tap_transformers"].append(row)
-
             elif section == "SWITCHED SHUNTS":
                 row = _parse_shunt_line(fields)
                 row["ELEMENTO"] = label
+                row["VARIABLE"] = var_type
                 rows["switched_shunts"].append(row)
-
         except (ValueError, IndexError):
             continue
 
@@ -316,16 +256,16 @@ def parse_sensitivity_report(report_file):
         else:
             df = pd.DataFrame(columns=cols)
         result[key] = df
+
     return result
 
 
 # ---------------------------------------------------------------------------
 # Excel writer
 # ---------------------------------------------------------------------------
-
 def write_sensitivity_excel(tables, output_file):
     """Write a dict of DataFrames to a multi-sheet Excel file.
-
+    
     Args:
         tables: dict returned by parse_sensitivity_report (or a merged version).
         output_file: destination .xlsx path.
@@ -337,11 +277,11 @@ def write_sensitivity_excel(tables, output_file):
 
 def save_sensitivity_table(report_file, output_file):
     """Parse a PSS/E report and save results as a multi-sheet Excel file.
-
+    
     Args:
         report_file: Path to the source text report.
         output_file: Destination path for the .xlsx table.
-
+        
     Returns:
         The dict of DataFrames written to output_file.
     """
