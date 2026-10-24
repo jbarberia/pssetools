@@ -51,14 +51,14 @@ def test_custom_accc_full_flow():
         )
 
         # 4. Validaciones de salida
-        # Custom ACCC genera un archivo "estatico.tsv"
-        output_tsv = os.path.join(output_dir, "estatico.tsv")
+        # Custom ACCC genera un archivo "estatico.xlsx"
+        output_xlsx = os.path.join(output_dir, "estatico.xlsx")
 
-        assert os.path.exists(output_tsv), "No se genero el archivo estatico.tsv"
+        assert os.path.exists(output_xlsx), "No se genero el archivo estatico.xlsx"
 
         # Verificar que el archivo no esté vacío y tenga el formato correcto
-        df_results = pd.read_csv(output_tsv, sep="\t")
-        assert not df_results.empty, "El archivo estatico.tsv esta vacio"
+        df_results = pd.read_excel(output_xlsx)
+        assert not df_results.empty, "El archivo estatico.xlsx esta vacio"
 
         # Verificar que se hayan procesado las contingencias definidas en test_case_accc.py
         # (base y BRANCH_RAMA_B)

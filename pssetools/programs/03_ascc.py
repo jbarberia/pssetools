@@ -1,3 +1,4 @@
+# coding: latin-1
 """
 ASCC (Automated Short Circuit Calculation)
 
@@ -47,14 +48,16 @@ class ASCCProgram(BaseProgram):
             try:
                 df_result = ascc(case, sub_file)
                 if df_result is not None and not df_result.empty:
-                        ascc_list.append(df_result)
+                    ascc_list.append(df_result)
 
             except Exception as e:
                 print("Error processing {}: {}".format(os.path.basename(case), e))
 
         if ascc_list:
+            df_final = pd.concat(ascc_list)
+
             ofile = os.path.join(output_dir, "ascc.xlsx")
-            pd.concat(ascc_list).to_excel(ofile, index=False)
+            df_final.to_excel(ofile, index=False)
             print("\nASCC Report successfully saved to: {}".format(ofile))
 
 
@@ -106,4 +109,4 @@ if __name__ == "__main__":
         sub_file=args.sub_file,
         output_dir=args.output_dir,
         temp_dir=args.temp_dir,
-    )
+    )

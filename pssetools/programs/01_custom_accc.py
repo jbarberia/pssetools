@@ -98,8 +98,8 @@ class ACCCProgram(BaseProgram):
                 df["CONTINGENCIA"] = funcion_ctg.__doc__ if funcion_ctg.__doc__ else nombre_ctg
                 dfs.append(df)
 
-        pd.concat(dfs, axis=0).to_csv(os.path.join(output_dir, "estatico.tsv"), sep="\t", index=False)
-        print("ACCC finalizado. Resultados guardados en: {}".format(os.path.join(output_dir, "estatico.tsv")))
+        pd.concat(dfs, axis=0).to_excel(os.path.join(output_dir, "estatico.xlsx"), index=False)
+        print("ACCC finalizado. Resultados guardados en: {}".format(os.path.join(output_dir, "estatico.xlsx")))
 
     def _disconnect_island(self):
         psspy = self.psspy

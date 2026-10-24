@@ -3,7 +3,7 @@
 PYTHON27="C:/Python27/python.exe"
 PYTHON314="C:/Python314/python.exe"
 
-install:
+install: clean
 	$(PYTHON27) -m pip install .	
 # 	$(PYTHON314) -m pip install -e .
 

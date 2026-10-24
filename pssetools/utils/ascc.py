@@ -66,22 +66,39 @@ def ascc(sav, subfile, subsystem_name="CORTOCIRCUITO", **kwargs):
     # arma al reporte
     buses = rlst["fltbus"]
 
-    df = pd.DataFrame()
-    df["CASO"] = [basename] * len(buses)
-    df["NUMBER"] = buses
-    df["NAME"] = [psspy.notona(bus)[-1][:12].strip() for bus in buses]
-    df["KV"] = [psspy.busdat(bus, "BASE")[-1] for bus in buses]
-    df["FLT3PH"] = [abs(    rlst["flt3ph"][i]["ia1"]) * psspy.sysmva() for i, bus in enumerate(buses)]
-    df["FLTLG"]  = [abs(    rlst["fltlg"][i]["ia"])   * psspy.sysmva() for i, bus in enumerate(buses)]
-    df["FLTLLG"] = [abs(3 * rlst["fltllg"][i]["ia0"]) * psspy.sysmva() for i, bus in enumerate(buses)]
-    df["FLTLL"]  = [abs(    rlst["fltll"][i]["ib"])   * psspy.sysmva() for i, bus in enumerate(buses)]
-    df["THEVZ1_R"] = [rlst["thevzpu"][i]["z1"].real for i, bus in enumerate(buses)]
-    df["THEVZ1_X"] = [rlst["thevzpu"][i]["z1"].imag for i, bus in enumerate(buses)]
-    df["THEVZ2_R"] = [rlst["thevzpu"][i]["z2"].real for i, bus in enumerate(buses)]
-    df["THEVZ2_X"] = [rlst["thevzpu"][i]["z2"].imag for i, bus in enumerate(buses)]
-    df["THEVZ0_R"] = [rlst["thevzpu"][i]["z0"].real for i, bus in enumerate(buses)]
-    df["THEVZ0_X"] = [rlst["thevzpu"][i]["z0"].imag for i, bus in enumerate(buses)]
-    
+    df_wide = pd.DataFrame()
+    df_wide["CASO"] = [basename] * len(buses)
+    df_wide["BUS"] = buses
+    df_wide["NAME"] = [psspy.notona(bus)[-1][:12].strip() for bus in buses]
+    df_wide["KV"] = [psspy.busdat(bus, "BASE")[-1] for bus in buses]
+    df_wide["FLT3PH"] = [abs(rlst["flt3ph"][i]["ia1"]) * psspy.sysmva() for i in range(len(buses))]
+    df_wide["FLTLG"]  = [abs(rlst["fltlg"][i]["ia"])   * psspy.sysmva() for i in range(len(buses))]
+    df_wide["FLTLLG"] = [abs(3 * rlst["fltllg"][i]["ia0"]) * psspy.sysmva() for i in range(len(buses))]
+    df_wide["FLTLL"]  = [abs(rlst["fltll"][i]["ib"])   * psspy.sysmva() for i in range(len(buses))]
+    df_wide["THEVZ1_R"] = [rlst["thevzpu"][i]["z1"].real for i in range(len(buses))]
+    df_wide["THEVZ1_X"] = [rlst["thevzpu"][i]["z1"].imag for i in range(len(buses))]
+    df_wide["THEVZ2_R"] = [rlst["thevzpu"][i]["z2"].real for i in range(len(buses))]
+    df_wide["THEVZ2_X"] = [rlst["thevzpu"][i]["z2"].imag for i in range(len(buses))]
+    df_wide["THEVZ0_R"] = [rlst["thevzpu"][i]["z0"].real for i in range(len(buses))]
+    df_wide["THEVZ0_X"] = [rlst["thevzpu"][i]["z0"].imag for i in range(len(buses))]
+
+    # Convertir a formato largo
+    id_vars = ["CASO", "BUS"]
+    value_vars = ["FLT3PH", "FLTLG", "FLTLLG", "FLTLL",
+                  "THEVZ1_R", "THEVZ1_X", "THEVZ2_R", "THEVZ2_X",
+                  "THEVZ0_R", "THEVZ0_X", "KV", "NAME"]
+
+    df = df_wide.melt(
+        id_vars=id_vars,
+        value_vars=value_vars,
+        var_name="VARIABLE",
+        value_name="VALOR"
+    )
+    df["DESCRIPCION"] = ""
+
+    # Reordenar columnas finales
+    df = df[["BUS", "VALOR", "VARIABLE", "DESCRIPCION", "CASO"]]
+
     assert ierr == 0
     return df
 
