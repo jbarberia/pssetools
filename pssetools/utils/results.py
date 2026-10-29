@@ -1,6 +1,7 @@
 # coding: latin-1
 import os
 import pandas as pd
+import psse34
 import psspy
 
 def get_results_from_case(mon_file):
@@ -28,7 +29,7 @@ def get_results_from_case(mon_file):
             res = get_machine_data(int(row["ID1"]), row["ID2"])
         else:
             continue
-
+        
         # Formateamos los resultados para el DataFrame final
         for var, val in res.items():
             all_data.append({
@@ -39,13 +40,13 @@ def get_results_from_case(mon_file):
                 "ID4": row["ID4"],
                 "VARIABLE": var,
                 "VALOR": val,
-                "DESCRIPCION": desc if var == "DESCRIPCION" else None
+                "DESCRIPCION": desc,
             })
 
     return pd.DataFrame(all_data)
 
 
-def get_bus_data(bus_id, variables=["VM", "BASE"]):
+def get_bus_data(bus_id, variables=["PU", "BASE"]):
     """Extrae datos de una barra."""
     results = {}
     for var in variables:
