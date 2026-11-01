@@ -82,7 +82,7 @@ def get_branch_data(ibus, jbus, ckt, variables=["MW", "MVAR", "MVA", "AMPS", "PC
     return results
 
 
-def get_3w_transformer_data(ibus, jbus, kbus, ckt, variables=["MW", "MVAR", "MVA", "AMPS", "PCTRT1", "RATEA"]):
+def get_3w_transformer_data(ibus, jbus, kbus, ckt, variables=["MW", "MVAR", "MVA", "AMPS", "PCTRT1", "RATE1"]):
     """Extrae datos de un transformador trifásico (3-winding)."""
     results = {}
     

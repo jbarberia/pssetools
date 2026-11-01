@@ -29,7 +29,7 @@ class CustomACCCFileGenerator(object):
         self.root.title("List elements selected")
         self.root.attributes("-topmost", True)
         self.root.geometry("650x350")
-        self.root.resizable(False, True)
+        self.root.resizable(True, True)
 
         self.tab_config = {
             0: {"ext": ".tsv", "attr": "mon_text", "label": "Monitor"},
@@ -157,7 +157,7 @@ class CustomACCCFileGenerator(object):
         text_frame.grid(row=0, column=0, sticky="nsew")
         scrollbar = tk.Scrollbar(text_frame)
         scrollbar.pack(side="right", fill="y")
-        text = tk.Text(text_frame, wrap="none", yscrollcommand=scrollbar.set)
+        text = tk.Text(text_frame, wrap="none", yscrollcommand=scrollbar.set, font=("Courier New", 10))
         text.pack(fill="both", expand=True)
         scrollbar.config(command=text.yview)
         return text
@@ -198,48 +198,141 @@ class CustomACCCFileGenerator(object):
 
 
 
+    # --- HELPERS DE FORMATO ---
+    @staticmethod
+    def _bus_info(psspy, bus):
+        """
+        Devuelve (nombre, tension base) de la barra `bus`.
+        Si PSS/E no la encuentra, usa su numero y 0.0.
+        """
+        name = str(bus)
+        ierr, value = psspy.notona(bus)
+        if ierr == 0 and value and value.strip():
+            name = value.strip()
+        kv = 0.0
+        ierr, value = psspy.busdat(bus, "BASE")
+        if ierr == 0:
+            kv = value
+        return name, kv
+
+    def _branch_label(self, psspy, ibus, jbus, ckt):
+        """
+        Etiqueta de una rama con el mismo formato que PSS/E:
+            2201     SNIC.OESTE  132.00   2387     SNICOLA4    132.00 1
+        """
+        iname, ikv = self._bus_info(psspy, ibus)
+        jname, jkv = self._bus_info(psspy, jbus)
+        return "{:<9d}{:<12s}{:6.2f}   {:<9d}{:<12s}{:6.2f} {}".format(
+            ibus, iname[:12], ikv, jbus, jname[:12], jkv, ckt
+        )
+
+    def _three_winding_label(self, psspy, bus, name, ckt, winding):
+        """
+        Etiqueta de un devanado de un transformador de tres arrollamientos,
+        con el mismo formato que PSS/E: la barra del devanado ocupa el lugar de
+        la barra de origen y el nombre del trafo el de la barra de destino:
+            2106     RAMALLOB    220.00 3WNDTR T1RA             WND 1 1
+        """
+        iname, ikv = self._bus_info(psspy, bus)
+        return "{:<9d}{:<12s}{:6.2f} {:<6s} {:<17s}{:<6s}{}".format(
+            bus, iname[:12], ikv, "3WNDTR", name[:17], "WND {}".format(winding), ckt
+        )
+
+    @staticmethod
+    def _map_key(map_string):
+        """
+        Identidad del elemento, para no listarlo dos veces cuando el SLD lo
+        devuelve una vez por terminal. El sentido de las ramas y el orden de
+        las barras de un trafo de tres arrollamientos no cambian la identidad.
+        """
+        kind = map_string[0]
+        if kind in ("LII", "TR", "SYS") and len(map_string) >= 3:
+            ckt = map_string[3] if len(map_string) > 3 else ""
+            return (kind, tuple(sorted(map_string[1:3])), ckt)
+        if kind == "T3" and len(map_string) >= 4:
+            ckt = map_string[4] if len(map_string) > 4 else ""
+            return ("T3", tuple(sorted(map_string[1:4])), ckt)
+        return tuple(map_string)
+
+    def _element_rows(self, psspy, map_string):
+        """
+        Traduce un map string del SLD a una o mas filas de 6 columnas:
+        ELEMENTO, ID1, ID2, ID3, ID4 y DESCRIPCION.
+
+        Cada rama genera los dos sentidos (i-j y j-i). Un transformador de tres
+        arrollamientos genera una fila por devanado, rotando las barras para
+        que el devanado quede primero (i-j-k, j-k-i, k-i-j):
+
+            linea:     2201     SNIC.OESTE  132.00   2387     SNICOLA4    132.00 1
+                       2387     SNICOLA4    132.00   2201     SNIC.OESTE  132.00 1
+            trafo 3W:  2106     RAMALLOB    220.00 3WNDTR T1RA             WND 1 1
+                       2107     BARRA2      132.00 3WNDTR T1RA             WND 2 1
+                       2108     BARRA3       13.80 3WNDTR T1RA             WND 3 1
+        """
+        kind = map_string[0]
+        id1, id2, id3, id4 = (list(map_string[1:]) + [""] * 4)[:4]
+
+        if kind in ("BU", "ME", "SWS", "LO", "FXS") and id1:
+            name, _ = self._bus_info(psspy, int(id1))
+            return [[kind, id1, id2, id3, id4, name]]
+
+        if kind in ("LII", "TR", "SYS") and id1 and id2:
+            ibus, jbus = int(id1), int(id2)
+            ckt = id3 or "1"
+            return [
+                [kind, str(ibus), str(jbus), ckt, id4,
+                 self._branch_label(psspy, ibus, jbus, ckt)],
+                [kind, str(jbus), str(ibus), ckt, id4,
+                 self._branch_label(psspy, jbus, ibus, ckt)],
+            ]
+
+        if kind == "T3" and id1 and id2 and id3:
+            ibus, jbus, kbus = int(id1), int(id2), int(id3)
+            ckt = id4 or "1"
+            ierr, name = psspy.tr3nam(ibus, jbus, kbus, ckt)
+            if ierr != 0:
+                return []
+            name = (name or "").strip()
+            rows = []
+            for winding, buses in enumerate(
+                ((ibus, jbus, kbus), (jbus, kbus, ibus), (kbus, ibus, jbus)), start=1
+            ):
+                busi, busj, busk = buses
+                rows.append([
+                    kind, str(busi), str(busj), str(busk), ckt,
+                    self._three_winding_label(psspy, busi, name, ckt, winding),
+                ])
+            return rows
+
+        return []
+
     def create_mon(self, text_widget):
         """
-        Cuatro campos + un campo de texto para reportes
+        Agrega las filas de los elementos seleccionados en el SLD.
+
+        Cada fila conserva el formato de 6 columnas del TSV
+        (ELEMENTO, ID1, ID2, ID3, ID4 y DESCRIPCION) y la descripción muestra
+        las barras, su tensión y el circuito, igual que la etiqueta de PSS/E.
+        Un transformador de tres arrollamientos agrega una fila por devanado.
         """
         import psspy
         content = []
+        seen = set()
         for ms in self.get_map_string_in_sld():
-            if ms[0] in ["BU", "ME", "SWS", "LO", "FXS"]:
-                ms = ms + [""] * (6 - len(ms))                
-                ierr, name = psspy.notona(int(ms[1]))
-                if ierr != 0:
-                    continue
-                if name:
-                    ms[-1] = name[:12].strip()
-                content.append("\t".join(ms))
-
-            elif ms[0] in ["TR", "SYS", "LII"]:
-                ms = ms + [""] * (6 - len(ms))
-                busi, busj, ckt = int(ms[1]), int(ms[2]), ms[3]
-                ierr, name = psspy.brnnam(busi, busj, ckt)                
-                if ierr != 0:
-                    continue
-                name = name.strip() or "{}-{}#{}".format(busi, busj, ckt)
-                ms[-1] = name
-                content.append("\t".join(ms))
-
-            elif ms[0] == "T3":
-                ms = ms + [""] * (6 - len(ms))
-                busi, busj, busk, ckt = int(ms[1]), int(ms[2]), int(ms[3]), ms[4]
-                ierr, name = psspy.tr3nam(busi, busj, busk, ckt)
-                if ierr != 0:
-                    continue
-                name = name.strip() or "{}-{}-{}#{}".format(busi, busj, busk, ckt)
-                ms[-1] = name
-                content.append("\t".join(ms))
+            try:
+                rows = self._element_rows(psspy, ms)
+            except (TypeError, ValueError):
+                continue
+            key = self._map_key(ms)
+            if not rows or key in seen:
+                continue
+            seen.add(key)
+            content.extend("\t".join(row) for row in rows)
 
         if content:
-            content.sort()
             txt = text_widget.get("1.0", tk.END)
             all_content = [line for line in txt.splitlines() if line.strip()]
             all_content.extend(content)
-            all_content.sort()
             text_widget.delete("1.0", tk.END)
             text_widget.insert(tk.END, "\n".join(all_content) + "\n")
             text_widget.see(tk.END)
