@@ -62,8 +62,10 @@ class CustomACCCProgram(BaseProgram):
                     continue
                 
                 funcion_ctg()
-                self._disconnect_island()
                 ierr = psspy.runlastsolution()
+                if ierr == 1:
+                    self._disconnect_island()
+                    ierr = psspy.runlastsolution()                
                 if ierr != 0: 
                     continue
                 
