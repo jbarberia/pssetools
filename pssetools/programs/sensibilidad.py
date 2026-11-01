@@ -98,6 +98,7 @@ def parse_elements_tsv(tsv_file):
 
 
 class SensitivityProgram(BaseProgram):
+    order = 23
 
     def get_parameters(self):
         """Returns parameter definitions for Sensitivity Analysis."""

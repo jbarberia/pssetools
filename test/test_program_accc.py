@@ -4,13 +4,12 @@ import pytest
 import sys
 import pandas as pd
 
-
 from pssetools.programs import BaseProgram
+from pssetools.programs.accc import ACCCProgram
+
 BaseProgram.set_psse_path()
 import psspy
-import importlib
-accc_module = importlib.import_module("pssetools.programs.01_accc")
-ACCCProgram = accc_module.ACCCProgram
+
 
 def test_accc_full_flow():
     # 1. Inicialización de PSS/E

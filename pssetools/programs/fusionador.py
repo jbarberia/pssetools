@@ -26,6 +26,7 @@ from pssetools.programs import BaseProgram
 
 
 class FusionadorDeCaso(BaseProgram):
+    order = 60
 
     def get_parameters(self):
         """Returns the parameter definitions and characteristics for ACCC."""

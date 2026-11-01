@@ -14,7 +14,8 @@ from pssetools.utils.results import get_results_from_case
 from pssetools.programs import BaseProgram
 
 
-class ACCCProgram(BaseProgram):
+class CustomACCCProgram(BaseProgram):
+    order = 21
 
     def get_parameters(self):
         """Returns the parameter definitions and characteristics for ACCC."""
@@ -167,7 +168,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    program = ACCCProgram()
+    program = CustomACCCProgram()
     program._run(
         cases=args.cases,
         mon_file=args.mon_file,

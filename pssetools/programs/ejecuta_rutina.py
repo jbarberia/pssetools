@@ -17,6 +17,7 @@ import os
 from pssetools.programs import BaseProgram
 
 class EjecutaRutina(BaseProgram):
+    order = 10
     
     def get_parameters(self):    
         return [

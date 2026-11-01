@@ -17,6 +17,7 @@ from pssetools.programs import BaseProgram
 
 
 class CompilaProgram(BaseProgram):
+    order = 41
     
     def get_parameters(self):
         "Returns the parameter definitions"

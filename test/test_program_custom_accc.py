@@ -6,12 +6,10 @@ import importlib
 import shutil
 
 from pssetools.programs import BaseProgram
+from pssetools.programs.custom_accc import CustomACCCProgram
 BaseProgram.set_psse_path()
 import psspy
 
-# Import CustomACCCProgram from 01_custom_accc
-custom_accc_module = importlib.import_module("pssetools.programs.01_custom_accc")
-CustomACCCProgram = custom_accc_module.ACCCProgram
 
 def test_custom_accc_full_flow():
     # 1. Inicialización de PSS/E

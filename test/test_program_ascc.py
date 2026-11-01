@@ -5,12 +5,11 @@ import pandas as pd
 import importlib
 
 from pssetools.programs import BaseProgram
+from pssetools.programs.ascc import ASCCProgram
+
 BaseProgram.set_psse_path()
 import psspy
 
-# Import ASCCProgram dynamically to avoid issues with numeric module names
-ascc_module = importlib.import_module("pssetools.programs.03_ascc")
-ASCCProgram = ascc_module.ASCCProgram
 
 def test_ascc_full_flow():
     # 1. Inicialización de PSS/E

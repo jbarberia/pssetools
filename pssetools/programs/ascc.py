@@ -14,6 +14,7 @@ from pssetools.programs import BaseProgram
 from pssetools.utils.ascc import ascc
 
 class ASCCProgram(BaseProgram):
+    order = 30
 
     def get_parameters(self):
         """Returns the parameter definitions and characteristics for ASCC."""

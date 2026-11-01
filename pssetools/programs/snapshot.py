@@ -17,6 +17,7 @@ from pssetools.utils.snp import create_snapshot
 
 
 class Snapshot(BaseProgram):
+    order = 40
     
     def get_parameters(self):
         "Returns the parameter definitions"

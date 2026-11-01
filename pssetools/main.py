@@ -81,7 +81,7 @@ class PSSEAutomationApp(object):
 
 
     def _populate_program_list(self):
-        for prog_name in sorted(self.programs_data):
+        for prog_name in self.programs_data:
             self.program_listbox.insert(tk.END, prog_name)
 
         if self.program_listbox.size() > 0:

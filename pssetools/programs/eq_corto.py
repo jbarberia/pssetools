@@ -20,6 +20,7 @@ import re
 from pssetools.programs import BaseProgram
 
 class Equivalente(BaseProgram):
+    order = 61
     
     def get_parameters(self):
         """Returns the parameter definitions and characteristics for ACCC."""
