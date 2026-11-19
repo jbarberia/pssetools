@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 # Parche para entornos embebidos de PSSE donde sys.argv no existe
 import sys
 if not hasattr(sys, 'argv'):
@@ -8,8 +10,8 @@ try:
 except ImportError:
     import Tkinter as tk
 
-import programs
-from main import PSSEAutomationApp
+from . import programs
+from .main import PSSEAutomationApp
 
 def gui():
     root = tk.Tk()

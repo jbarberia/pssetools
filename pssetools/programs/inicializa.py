@@ -22,6 +22,7 @@ from pssetools.programs import BaseProgram
 
 class DynStrtDebug(BaseProgram):
     """Base class for all PSS/E automation modules."""
+    order = 42
 
     def get_parameters(self):
         "Returns the parameter definitions"

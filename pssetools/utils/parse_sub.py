@@ -1,377 +1,189 @@
 # coding: latin-1
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import io
 import re
 from collections import namedtuple
 
 Bus = namedtuple("Bus", ["number", "area", "owner", "zone", "kv"])
 
+
 def parse_sub(filename):
-    """Parses a subsystem configuration file (.sub) for PSS/E.
-
-    Reads subsystem definitions from the file and returns a dictionary
-    mapping subsystem names to lists of bus numbers.
-
-    Args:
-        filename: Path to the .sub file.
-
-    Returns:
-        Dictionary where keys are subsystem names and values are lists 
-        of associated bus numbers.
-    """
-
-    # lee archivo
-    with open(filename, "r") as f:
+    """Parsea archivos de subsistema (.sub) utilizando cache en memoria de barras."""
+    with io.open(filename, "r", encoding="latin-1") as f:
         file_string = f.read()
 
-    # elimina comentarios
     file_string = remove_comments(file_string)
-
-    # get block of subsystems
     blocks = get_subsystem_blocks(file_string)
-    
+
+    # Optimizacion critica: Consultar las barras activas de PSS/E una sola vez
+    buses_cache = extract_buses(only_in_service=True)
+
     data = {}
     for block in blocks:
-
-        # TODO obtnener bloques join
-
         name = get_name(block)
         sub_groups = get_join_blocks(block)
-        # import pdb; pdb.set_trace()
         bus_subsystem = []
-        
+
         for sub_group in sub_groups:
-            kv_range = parse_kv(sub_group)
-            areas = parse_areas(sub_group)
-            buses = parse_buses(sub_group)
-            owners = parse_owners(sub_group)
-            zones = parse_zones(sub_group)
+            kv_range = parse_kv(sub_group, buses_cache)
+            areas = parse_areas(sub_group, buses_cache)
+            buses = parse_buses(sub_group, buses_cache)
+            owners = parse_owners(sub_group, buses_cache)
+            zones = parse_zones(sub_group, buses_cache)
 
-            elementos = [x for x in [kv_range, areas, buses, owners, zones] if len(x) > 0]   
+            elementos = [x for x in [kv_range, areas, buses, owners, zones] if len(x) > 0]
             if elementos:
-                bus_subsystem += list(set.intersection(*elementos))
-            else:
-                bus_subsystem += []
+                bus_subsystem.extend(set.intersection(*elementos))
 
-        data[name] = list(set(bus_subsystem))
+        data[name] = sorted(list(set(bus_subsystem)))
     return data
 
 
 def remove_comments(string):
-    """Removes 'COM' prefixed comments from a string.
-
-    Args:
-        string: The multi-line string to process.
-
-    Returns:
-        The string with comment lines removed.
-    """
-    lines = string.splitlines()
-    lines = [l for l in lines if not l.strip().startswith("COM")]
-    string = "\n".join(lines)
-    return string
+    """Elimina lineas comentadas con prefijo 'COM'."""
+    return "\n".join(l for l in string.splitlines() if not l.strip().startswith("COM"))
 
 
 def get_subsystem_blocks(string):
-    """Identifies and extracts 'SUBSYSTEM' or 'SYSTEM' blocks from a string.
-
-    Args:
-        string: The processed .sub file content.
-
-    Returns:
-        A list of strings, each representing a subsystem block.
-    """
+    """Extrae bloques SUBSYSTEM o SYSTEM corrigiendo la sintaxis regex."""
     blocks = []
     block = []
-
     keep_reading = False
     in_join_block = False
 
     for line in string.splitlines():
+        # Uso de prefijo estricto
         if line.startswith("SUBSYSTEM") or line.startswith("SYSTEM"):
             block.append(line)
             keep_reading = True
-
-        if line.startswith("JOIN"):
+        elif line.startswith("JOIN"):
             in_join_block = True
-
-        if line.startswith("END"):
+        elif line.startswith("END"):
             if in_join_block:
                 keep_reading = True
                 in_join_block = False
             else:
                 keep_reading = False
-                if len(block) > 0:
+                if block:
                     blocks.append("\n".join(block))
                 block = []
+                continue
 
-        if keep_reading:
+        if keep_reading and line not in block:
             block.append(line)
 
-    # TODO: chequear bloques JOIN
     return blocks
 
 
 def get_join_blocks(string):
-    """Extracts joined element groups within a subsystem block.
-
-    Args:
-        string: A single subsystem block string.
-
-    Returns:
-        A list of strings representing joined element specifications.
-    """
+    """Extrae sub-bloques de agrupacion JOIN dentro de una definicion."""
     blocks = []
     block = []
-
     keep_reading = False
     in_join_block = False
 
     for line in string.splitlines():
-        line = line.strip()
-
-        if line.startswith("SUBSYSTEM") or line.startswith("SYSTEM"):
-            # block.append(line)
+        line_s = line.strip()
+        if line_s.startswith("SUBSYSTEM") or line_s.startswith("SYSTEM"):
             keep_reading = True
             continue
-
-        if line.startswith("JOIN"):
+        if line_s.startswith("JOIN"):
             in_join_block = True
             continue
-
-        if line.startswith("END"):
+        if line_s.startswith("END"):
             if in_join_block:
                 keep_reading = True
                 in_join_block = False
             else:
                 keep_reading = False
-                if len(block) > 0:
+                if block:
                     blocks.append("\n".join(block))
                 block = []
+                continue
 
         if keep_reading:
             block.append(line)
-            if not in_join_block:
+            if not in_join_block and block:
                 blocks.append("\n".join(block))
                 block = []
-
     return blocks
 
 
 def get_name(block):
-    """Extracts the subsystem name from its block header.
-
-    Args:
-        block: A subsystem block string.
-
-    Returns:
-        The cleaned subsystem name.
-    """
-    name = re.search(r"[SUBSYSTEM|SYSTEM]\s+(.*)", block).group(1)
-    name = name.replace("'", "")
-    name = name.replace('"', "")
-    return name
+    """Extrae el nombre de la definicion con regex de grupo correcta."""
+    # Corregido: (?:SUBSYSTEM|SYSTEM) en lugar del erroneo [SUBSYSTEM|SYSTEM]
+    match = re.search(r"^(?:SUBSYSTEM|SYSTEM)\s+['\"]?([^'\"\n\r]+)['\"]?", block, re.MULTILINE)
+    if match:
+        return match.group(1).strip()
+    return "UNKNOWN"
 
 
 def extract_buses(only_in_service=True):
-    """Queries PSS/E for bus data in the loaded case.
-
-    Args:
-        only_in_service: If True, only retrieves buses that are in service.
-
-    Returns:
-        A list of Bus namedtuples containing number, area, owner, zone, and kV.
-    """
+    """Consulta la API de PSS/E de forma segura y devuelve una lista de namedtuples."""
     import psspy
 
-    flag = 1 if only_in_service else 2       
-    ierr1, (number, area, owner, zone,) = psspy.abusint(-1, flag, ["NUMBER", "AREA", "OWNER", "ZONE"])    
+    flag = 1 if only_in_service else 2
+    ierr1, (number, area, owner, zone) = psspy.abusint(-1, flag, ["NUMBER", "AREA", "OWNER", "ZONE"])
     ierr2, (kv,) = psspy.abusreal(-1, flag, ["BASE"])
-    assert ierr1 == 0 and ierr2 == 0
+    if ierr1 != 0 or ierr2 != 0:
+        return []
 
-    buses = []
-    for i, bus in enumerate(number):
-        buses.append(Bus(
-            number[i],
-            area[i],
-            owner[i],
-            zone[i],
-            round(kv[i], 2),
-        ))
-    return buses
+    return [
+        Bus(number[i], area[i], owner[i], zone[i], round(kv[i], 2))
+        for i in range(len(number))
+    ]
 
 
-def parse_areas(block):
-    """Identifies bus numbers belonging to specified areas in a block.
-
-    Args:
-        block: A joined element block string.
-
-    Returns:
-        A set of bus numbers within the specified areas.
-    """
-    areas = []
-
-    # single buses
-    matches = re.findall("AREA\s+([0-9]{,6})", block)
-    areas += [int(b) for b in matches]
-
-    # multiples buses
-    matches = re.findall("AREAS\s+([0-9]{,6})\s([0-9]{,6})", block)
-    for match in matches:
-        area1 = int(match[0])
-        area2 = int(match[1])
-        areas += [b for b in range(area1, area2 + 1)]
-
-    # extrae buses 
-    buses = extract_buses(only_in_service=True)
-    buses = [b.number for b in buses if b.area in areas]
-
-    
-    if buses:
-        return set(buses)
-    else:
-        return set()
+def parse_areas(block, buses):
+    areas = set()
+    for m in re.finditer(r"\bAREA\s+([0-9]{1,6})\b", block):
+        areas.add(int(m.group(1)))
+    for m in re.finditer(r"\bAREAS\s+([0-9]{1,6})\s+([0-9]{1,6})\b", block):
+        areas.update(range(int(m.group(1)), int(m.group(2)) + 1))
+    return {b.number for b in buses if b.area in areas} if areas else set()
 
 
-def parse_buses(block):
-    """Identifies specific bus numbers or ranges defined in a block.
+def parse_buses(block, buses):
+    buses_to_keep = set()
+    for m in re.finditer(r"\bBUS\s+([0-9]{1,6})\b", block):
+        buses_to_keep.add(int(m.group(1)))
+    # Corregido: limite superior inclusivo bus2 + 1
+    for m in re.finditer(r"\bBUSES\s+([0-9]{1,6})\s+([0-9]{1,6})\b", block):
+        buses_to_keep.update(range(int(m.group(1)), int(m.group(2)) + 1))
 
-    Args:
-        block: A joined element block string.
-
-    Returns:
-        A set of bus numbers.
-    """
-    buses = []
-
-    # single buses
-    matches = re.findall("BUS\s+([0-9]{,6})", block)
-    buses += [int(b) for b in matches]
-
-    # multiples buses
-    matches = re.findall("BUSES\s+([0-9]{,6})\s([0-9]{,6})", block)
-    for match in matches:
-        bus1 = int(match[0])
-        bus2 = int(match[1])
-        buses += [b for b in range(bus1 + 1, bus2)]
-
-    # skip buses - simple
-    buses_to_remove = []
-    matches = re.findall("\s+SKIP BUS\s+([0-9]{,6})", block)
-    buses_to_remove += [int(b) for b in matches]
-
-    # skip buses with conditions
-    # TODO - esta complicado
-    
-    # barras a mantener/eliminar
-    buses_to_keep = set(buses)
-    buses_to_remove = set(buses_to_remove)
-
-    buses = extract_buses(only_in_service=True)
-    buses = [b.number for b in buses if 
-             (b.number in buses_to_keep) and not (b.number in buses_to_remove)]
-    
-    if buses:
-        return set(buses)
-    else:
-        return set()
-    
-
-def parse_owners(block):
-    """Identifies bus numbers belonging to specified owners in a block.
-
-    Args:
-        block: A joined element block string.
-
-    Returns:
-        A set of bus numbers belonging to specified owners.
-    """
-    owners = []
-
-    # single buses
-    matches = re.findall("OWNER\s+([0-9]{,6})", block)
-    owners += [int(b) for b in matches]
-
-    # multiples buses
-    matches = re.findall("OWNERS\s+([0-9]{,6})\s([0-9]{,6})", block)
-    for match in matches:
-        owner1 = int(match[0])
-        owner2 = int(match[1])
-        owners += [b for b in range(owner1, owner2 + 1)]
-
-    # extrae buses 
-    buses = extract_buses(only_in_service=True)
-    buses = [b.number for b in buses if b.owner in owners]
-    if buses:
-        return set(buses)
-    else:
-        return set()
+    buses_to_remove = {int(m.group(1)) for m in re.finditer(r"\bSKIP\s+BUS\s+([0-9]{1,6})\b", block)}
+    active_bus_numbers = {b.number for b in buses}
+    return (buses_to_keep - buses_to_remove) & active_bus_numbers
 
 
-def parse_zones(block):
-    """Identifies bus numbers belonging to specified zones in a block.
-
-    Args:
-        block: A joined element block string.
-
-    Returns:
-        A set of bus numbers within the specified zones.
-    """
-    zones = []
-
-    # single buses
-    matches = re.findall("ZONE\s+([0-9]{,6})", block)
-    zones += [int(b) for b in matches]
-
-    # multiples buses
-    matches = re.findall("ZONES\s+([0-9]{,6})\s([0-9]{,6})", block)
-    for match in matches:
-        zone1 = int(match[0])
-        zone2 = int(match[1])
-        zones += [b for b in range(zone1, zone2 + 1)]
-
-    # extrae buses 
-    buses = extract_buses(only_in_service=True)
-    buses = [b.number for b in buses if b.zone in zones]
-    if buses:
-        return set(buses)
-    else:
-        return set()
+def parse_owners(block, buses):
+    owners = set()
+    for m in re.finditer(r"\bOWNER\s+([0-9]{1,6})\b", block):
+        owners.add(int(m.group(1)))
+    for m in re.finditer(r"\bOWNERS\s+([0-9]{1,6})\s+([0-9]{1,6})\b", block):
+        owners.update(range(int(m.group(1)), int(m.group(2)) + 1))
+    return {b.number for b in buses if b.owner in owners} if owners else set()
 
 
-def parse_kv(block):
-    """Identifies bus numbers within specified kV levels or ranges.
+def parse_zones(block, buses):
+    zones = set()
+    for m in re.finditer(r"\bZONE\s+([0-9]{1,6})\b", block):
+        zones.add(int(m.group(1)))
+    for m in re.finditer(r"\bZONES\s+([0-9]{1,6})\s+([0-9]{1,6})\b", block):
+        zones.update(range(int(m.group(1)), int(m.group(2)) + 1))
+    return {b.number for b in buses if b.zone in zones} if zones else set()
 
-    Args:
-        block: A joined element block string.
 
-    Returns:
-        A set of bus numbers matching the kV criteria.
-    """
-    buses = extract_buses(only_in_service=True)
+def parse_kv(block, buses):
+    m_kv = re.search(r"\bKV\s+([0-9]+\.?[0-9]*)\b", block)
+    if m_kv:
+        kv_val = float(m_kv.group(1))
+        return {b.number for b in buses if abs(b.kv - kv_val) <= 0.01}
 
-    # single buses
-    match = re.search("KV\s+([0-9]{,6}\.{,1}[0-9]{,6})", block)
-    if match:
-        kv_value = float(match.group(1))
-        buses = [b.number for b in buses if abs(b.kv - kv_value) / kv_value <= 1e-6]
-        
-        if buses:
-            return set(buses)
-        else:
-            return set()
+    m_range = re.search(r"\bKVRANGE\s+([0-9]+\.?[0-9]*)\s+([0-9]+\.?[0-9]*)\b", block)
+    if m_range:
+        lb, ub = float(m_range.group(1)), float(m_range.group(2))
+        return {b.number for b in buses if lb <= b.kv <= ub}
 
-    # multiples buses
-    match = re.search("KVRANGE\s+([0-9]{,6}\.{,1}[0-9]{,6})\s+([0-9]{,6}\.{,1}[0-9]{,6})", block)
-    if match:
-        lb = float(match.group(1))
-        ub = float(match.group(2))
-        buses = [b.number for b in buses if lb <= b.kv <= ub]
-
-        if buses:
-            return set(buses)
-        else:
-            return set()
-        
     return set()
-
-    

@@ -20,7 +20,7 @@ import re
 import sys
 
 from pssetools.programs import discover_programs
-from state import ApplicationState
+from .state import ApplicationState
 
 
 class PSSEAutomationApp(object):
@@ -81,7 +81,7 @@ class PSSEAutomationApp(object):
 
 
     def _populate_program_list(self):
-        for prog_name in sorted(self.programs_data):
+        for prog_name in self.programs_data:
             self.program_listbox.insert(tk.END, prog_name)
 
         if self.program_listbox.size() > 0:
@@ -408,7 +408,7 @@ class PSSEAutomationApp(object):
         lines.append("pause")
         lines.append("")
 
-        return "\r\n".join(lines)
+        return "\n".join(lines)
 
 
     def refresh_current_program(self):

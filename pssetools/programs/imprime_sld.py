@@ -14,6 +14,7 @@ import subprocess
 from pssetools.programs import BaseProgram
 
 class SLDPrinter(BaseProgram):
+    order = 50
     
     def get_parameters(self):    
         return [

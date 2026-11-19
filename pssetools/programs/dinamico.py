@@ -16,6 +16,7 @@ import time
 from pssetools.programs import BaseProgram
 
 class DynamicSimulationProgram(BaseProgram):
+    order = 43
     
     def get_parameters(self):
         return [
