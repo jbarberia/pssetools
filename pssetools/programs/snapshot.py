@@ -90,6 +90,13 @@ class Snapshot(BaseProgram):
         if idv and os.path.exists(idv):
             psspy.runrspnsfile(idv)
 
+        # configuracion tipica
+        _i = psspy.getdefaultint()
+        _f = psspy.getdefaultreal()
+        _s = psspy.getdefaultchar()
+        psspy.dynamics_solution_param_2([250,_i,_i,_i,_i,_i,_i,_i],[ 0.25,_f, 0.002,_f,_f,_f,_f,_f])
+        psspy.set_netfrq(1)
+
         locals_vars = {
             "psspy": psspy,
             "_i" : psspy.getdefaultint(),
@@ -100,13 +107,6 @@ class Snapshot(BaseProgram):
              with open(py) as f:
                 code = f.read()
                 exec(code, locals_vars)
-
-        # configuracion tipica
-        _i = psspy.getdefaultint()
-        _f = psspy.getdefaultreal()
-        _s = psspy.getdefaultchar()
-        psspy.dynamics_solution_param_2([250,_i,_i,_i,_i,_i,_i,_i],[ 0.25,_f, 0.002,_f,_f,_f,_f,_f])
-        psspy.set_netfrq(1)
 
         ierr = psspy.snap(sfile=snapshot)
 

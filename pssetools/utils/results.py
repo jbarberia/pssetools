@@ -115,7 +115,7 @@ def get_branch_data(ibus, jbus, ckt, variables=["MW", "MVAR", "MVA", "AMPS", "PC
     
     # Flujo complejo (MW, MVAR, MVA)
     ierr, mva = psspy.brnflo(ibus, jbus, ckt)
-    if ierr == 0 or ierr == 3:
+    if ierr == 0:
         results["MW"] = mva.real
         results["MVAR"] = mva.imag
         results["MVA"] = abs(mva)
@@ -140,7 +140,7 @@ def get_3w_transformer_data(ibus, jbus, kbus, ckt, variables=["MW", "MVAR", "MVA
     results = {}
     
     ierr, mva = psspy.wnddt2(ibus, jbus, kbus, ckt, "FLOW")
-    if ierr == 0 or ierr == 7:
+    if ierr == 0:
         results["MW"] = mva.real
         results["MVAR"] = mva.imag
         results["MVA"] = abs(mva)

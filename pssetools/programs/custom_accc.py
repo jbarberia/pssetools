@@ -62,15 +62,13 @@ class CustomACCCProgram(BaseProgram):
                     continue
                 
                 funcion_ctg()
-                ierr = psspy.runlastsolution()
-                if ierr == 1:
-                    self._disconnect_island()
-                    ierr = psspy.runlastsolution()                
+                self._disconnect_island()                
+                ierr = psspy.runlastsolution()                
                 if ierr != 0: 
                     continue
                 
                 name = os.path.splitext(os.path.basename(case))[0]
-                ofile = os.path.join(output_dir, name, "{}_{}.sav".format(name, nombre_ctg))
+                ofile = os.path.join(output_dir, name, "{}_{}.sav".format(name, funcion_ctg.__doc__))
                 
                 folder_path = os.path.dirname(ofile)
                 if not os.path.exists(folder_path):
@@ -139,7 +137,7 @@ if __name__ == "__main__":
     program = CustomACCCProgram()
     program._run(
         cases=args.cases,
-        mon_file=args.mon_file,        
+        con_file=args.con_file,        
         output_dir=args.output_dir,
         temp_dir=args.temp_dir,
     )
